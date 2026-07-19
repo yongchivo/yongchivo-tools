@@ -11,6 +11,7 @@ export interface Tool {
 export const tools: Tool[] = [
   {
     slug: 'password-generator',
+    href: '/password-generator/',
     name: {
       en: 'Password Generator',
       es: 'Generador de contraseñas',

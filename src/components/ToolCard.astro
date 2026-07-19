@@ -21,7 +21,11 @@ const t = useTranslations(lang);
       {href ? <a href={href} class="after:absolute after:inset-0">{name}</a> : name}
     </h2>
     {
-      !href && (
+      href ? (
+        <span class="shrink-0 rounded-full border border-emerald-400/40 bg-emerald-400/10 px-2.5 py-0.5 text-xs font-medium text-emerald-400">
+          {t('card.live')}
+        </span>
+      ) : (
         <span class="shrink-0 rounded-full border border-brand-cyan/40 bg-brand-cyan/10 px-2.5 py-0.5 text-xs font-medium text-brand-cyan">
           {t('card.comingSoon')}
         </span>

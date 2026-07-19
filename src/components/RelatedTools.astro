@@ -1,0 +1,33 @@
+---
+import ToolCard from './ToolCard.astro';
+import { tools, type Tool } from '../data/tools';
+import { useTranslations, type Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+  slugs: string[];
+}
+
+const { lang, slugs } = Astro.props;
+const t = useTranslations(lang);
+
+const related = slugs
+  .map((slug) => tools.find((tool) => tool.slug === slug))
+  .filter((tool): tool is Tool => Boolean(tool));
+---
+
+<section class="mt-14">
+  <h2 class="mb-4 text-xl font-semibold tracking-tight">{t('related.heading')}</h2>
+  <div class="grid gap-4 sm:grid-cols-2">
+    {
+      related.map((tool) => (
+        <ToolCard
+          lang={lang}
+          name={tool.name[lang]}
+          description={tool.description[lang]}
+          href={tool.href ? (lang === 'es' ? `/es${tool.href}` : tool.href) : undefined}
+        />
+      ))
+    }
+  </div>
+</section>
