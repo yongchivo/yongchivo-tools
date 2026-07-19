@@ -1,0 +1,10 @@
+{
+  // Cloudflare Workers config — static Astro build served via Workers Assets.
+  // Build: npm run build  →  dist/   Deploy: npx wrangler deploy
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "yongchivo-tools",
+  "compatibility_date": "2026-07-19",
+  "assets": {
+    "directory": "./dist"
+  }
+}
