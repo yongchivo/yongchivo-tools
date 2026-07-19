@@ -1,0 +1,222 @@
+---
+import ToolCard from './ToolCard.astro';
+import { questions, roles } from '../data/quiz';
+import { tools } from '../data/tools';
+import { useTranslations, type Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+// Quiz copy keys are built dynamically from quiz.ts structure.
+const ts = t as unknown as (key: string) => string;
+
+const toolBySlug = (slug: string) => tools.find((tool) => tool.slug === slug);
+---
+
+<div id="cyberquiz" class="max-w-2xl" data-progress-template={t('quiz.ui.progress')}>
+  <div id="qz-quiz" class="rounded-xl border border-brand-border bg-brand-surface p-5 sm:p-6">
+    <div class="mb-5">
+      <div class="h-1.5 overflow-hidden rounded-full bg-brand-border">
+        <div
+          id="qz-bar"
+          class="h-full rounded-full bg-gradient-to-r from-brand-magenta to-brand-cyan transition-all duration-300"
+          style="width: 0%"
+        >
+        </div>
+      </div>
+      <p id="qz-progress" class="mt-1.5 text-xs text-brand-muted"></p>
+    </div>
+
+    {
+      questions.map((question, index) => (
+        <fieldset class:list={['qz-question', index !== 0 && 'hidden']} data-index={index}>
+          <legend class="mb-4 text-lg font-semibold">{ts(`quiz.${question.key}`)}</legend>
+          <div class="grid gap-2.5">
+            {question.options.map((option) => (
+              <button
+                type="button"
+                class="qz-option rounded-lg border border-brand-border bg-brand-bg px-4 py-3 text-left text-sm transition-colors hover:border-brand-purple hover:bg-brand-purple/10"
+                data-points={JSON.stringify(option.points)}
+              >
+                {ts(`quiz.${option.key}`)}
+              </button>
+            ))}
+          </div>
+        </fieldset>
+      ))
+    }
+  </div>
+
+  <div id="qz-results" class="hidden">
+    {
+      roles.map((role) => (
+        <div
+          class="qz-result hidden rounded-xl border border-brand-border bg-brand-surface p-5 text-center sm:p-8"
+          data-role={role.id}
+        >
+          <p class="text-5xl" aria-hidden="true">
+            {role.emoji}
+          </p>
+          <p class="mt-4 text-xs uppercase tracking-widest text-brand-muted">{t('quiz.ui.reveal')}</p>
+          <h2 class="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">
+            <span class="bg-gradient-to-r from-brand-magenta via-brand-purple to-brand-cyan bg-clip-text text-transparent">
+              {ts(`quiz.role.${role.id}.name`)}
+            </span>
+          </h2>
+          <p class="mx-auto mt-4 max-w-lg text-left text-sm leading-relaxed text-brand-muted sm:text-center">
+            {ts(`quiz.role.${role.id}.desc`)}
+          </p>
+          <h3 class="mb-3 mt-8 text-left font-semibold">{t('quiz.ui.toolsHeading')}</h3>
+          <div class="grid gap-3 text-left sm:grid-cols-3">
+            {role.tools.map((slug) => {
+              const tool = toolBySlug(slug);
+              return tool ? (
+                <ToolCard
+                  lang={lang}
+                  name={tool.name[lang]}
+                  description={tool.description[lang]}
+                  href={tool.href ? (lang === 'es' ? `/es${tool.href}` : tool.href) : undefined}
+                />
+              ) : null;
+            })}
+          </div>
+        </div>
+      ))
+    }
+
+    <div class="mt-6 rounded-xl border border-brand-purple/40 bg-brand-purple/10 p-5 sm:p-6">
+      <h3 class="font-semibold">{t('quiz.ui.newsTitle')}</h3>
+      <p class="mt-1 text-sm text-brand-muted">{t('quiz.ui.newsBody')}</p>
+      <form id="qz-news" class="mt-4 flex flex-col gap-2 sm:flex-row" novalidate>
+        <input
+          id="qz-email"
+          type="email"
+          required
+          aria-label={t('quiz.ui.emailLabel')}
+          placeholder={t('quiz.ui.emailPlaceholder')}
+          autocomplete="email"
+          class="min-w-0 flex-1 rounded-lg border border-brand-border bg-brand-bg px-3 py-2.5 text-sm text-brand-text placeholder:text-brand-muted focus:border-brand-purple focus:outline-none"
+        />
+        <button
+          type="submit"
+          class="rounded-lg border border-brand-purple/40 bg-brand-purple/20 px-4 py-2.5 text-sm font-medium text-brand-purple transition-colors hover:bg-brand-purple/30"
+        >
+          {t('quiz.ui.subscribe')}
+        </button>
+      </form>
+      <p id="qz-news-error" class="mt-2 hidden text-sm text-red-400" role="alert">
+        {t('quiz.ui.emailInvalid')}
+      </p>
+      <p id="qz-news-ok" class="mt-2 hidden text-sm text-emerald-400" role="status">
+        {t('quiz.ui.subscribed')}
+      </p>
+    </div>
+
+    <button
+      id="qz-retake"
+      type="button"
+      class="mt-6 rounded-lg border border-brand-border px-4 py-2.5 text-sm font-medium text-brand-muted transition-colors hover:border-brand-cyan/60 hover:text-brand-cyan"
+    >
+      {t('quiz.ui.retake')}
+    </button>
+  </div>
+</div>
+
+<script>
+  const root = document.getElementById('cyberquiz');
+  if (root) {
+    const $ = (id: string) => document.getElementById(id)!;
+    const quizEl = $('qz-quiz');
+    const resultsEl = $('qz-results');
+    const bar = $('qz-bar') as HTMLElement;
+    const progressEl = $('qz-progress');
+    const questionEls = [...root.querySelectorAll<HTMLElement>('.qz-question')];
+    const resultEls = [...root.querySelectorAll<HTMLElement>('.qz-result')];
+    const newsForm = $('qz-news') as HTMLFormElement;
+    const emailInput = $('qz-email') as HTMLInputElement;
+    const newsError = $('qz-news-error');
+    const newsOk = $('qz-news-ok');
+    const template = root.dataset.progressTemplate!;
+    // Order doubles as the tie-breaker, mirroring roles order in quiz.ts.
+    const ROLE_ORDER = ['pt', 'soc', 'df', 'se', 'grc'];
+
+    let current = 0;
+    let scores: Record<string, number> = {};
+    let winner = '';
+
+    function showQuestion(index: number) {
+      questionEls.forEach((el, i) => el.classList.toggle('hidden', i !== index));
+      bar.style.width = `${(index / questionEls.length) * 100}%`;
+      progressEl.textContent = template
+        .replace('{n}', String(index + 1))
+        .replace('{total}', String(questionEls.length));
+    }
+
+    function finish() {
+      let best = -1;
+      for (const role of ROLE_ORDER) {
+        const score = scores[role] ?? 0;
+        if (score > best) {
+          best = score;
+          winner = role;
+        }
+      }
+      quizEl.classList.add('hidden');
+      resultsEl.classList.remove('hidden');
+      resultEls.forEach((el) => el.classList.toggle('hidden', el.dataset.role !== winner));
+      resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    quizEl.addEventListener('click', (event) => {
+      const button = (event.target as HTMLElement).closest('.qz-option') as HTMLElement | null;
+      if (!button) return;
+      const points = JSON.parse(button.dataset.points!) as Record<string, number>;
+      for (const [role, value] of Object.entries(points)) {
+        scores[role] = (scores[role] ?? 0) + value;
+      }
+      if (current + 1 < questionEls.length) {
+        current++;
+        showQuestion(current);
+      } else {
+        finish();
+      }
+    });
+
+    $('qz-retake').addEventListener('click', () => {
+      scores = {};
+      current = 0;
+      winner = '';
+      newsForm.reset();
+      newsForm.classList.remove('hidden');
+      newsError.classList.add('hidden');
+      newsOk.classList.add('hidden');
+      resultsEl.classList.add('hidden');
+      quizEl.classList.remove('hidden');
+      showQuestion(0);
+      quizEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    newsForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      if (!emailInput.value.trim() || !emailInput.checkValidity()) {
+        newsError.classList.remove('hidden');
+        return;
+      }
+      newsError.classList.add('hidden');
+      // Stub: no backend yet. Real newsletter integration (Worker/ESP) is a
+      // separate follow-up; this only logs locally and shows the success state.
+      console.log('[newsletter-stub] subscribe', {
+        email: emailInput.value.trim(),
+        role: winner,
+        lang: document.documentElement.lang,
+      });
+      newsForm.classList.add('hidden');
+      newsOk.classList.remove('hidden');
+    });
+
+    showQuestion(0);
+  }
+</script>

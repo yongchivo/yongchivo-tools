@@ -47,6 +47,7 @@ export const tools: Tool[] = [
   },
   {
     slug: 'which-cyber-role',
+    href: '/which-cyber-role/',
     name: {
       en: 'Which Cyber Role Are You?',
       es: '¿Qué rol cyber eres?',

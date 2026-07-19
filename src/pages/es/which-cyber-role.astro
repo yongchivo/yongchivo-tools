@@ -1,0 +1,23 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import CyberRoleQuiz from '../../components/CyberRoleQuiz.astro';
+import { useTranslations } from '../../i18n/ui';
+
+const lang = 'es';
+const t = useTranslations(lang);
+---
+
+<BaseLayout lang={lang} title={t('quiz.title')} description={t('quiz.metaDescription')}>
+  <section class="mb-8 max-w-2xl">
+    <h1 class="mb-3 text-3xl font-bold tracking-tight sm:text-4xl">
+      <span
+        class="bg-gradient-to-r from-brand-magenta via-brand-purple to-brand-cyan bg-clip-text text-transparent"
+      >
+        {t('quiz.heading')}
+      </span>
+    </h1>
+    <p class="text-brand-muted">{t('quiz.intro')}</p>
+  </section>
+
+  <CyberRoleQuiz lang={lang} />
+</BaseLayout>
