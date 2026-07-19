@@ -1,0 +1,35 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ToolCard from '../../components/ToolCard.astro';
+import { tools } from '../../data/tools';
+import { useTranslations } from '../../i18n/ui';
+
+const lang = 'es';
+const t = useTranslations(lang);
+---
+
+<BaseLayout lang={lang}>
+  <section class="mb-10">
+    <h1 class="mb-3 text-3xl font-bold tracking-tight sm:text-4xl">
+      <span
+        class="bg-gradient-to-r from-brand-magenta via-brand-purple to-brand-cyan bg-clip-text text-transparent"
+      >
+        {t('hub.heading')}
+      </span>
+    </h1>
+    <p class="max-w-2xl text-brand-muted">{t('hub.subheading')}</p>
+  </section>
+
+  <section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    {
+      tools.map((tool) => (
+        <ToolCard
+          lang={lang}
+          name={tool.name[lang]}
+          description={tool.description[lang]}
+          href={tool.href ? `/es${tool.href}` : undefined}
+        />
+      ))
+    }
+  </section>
+</BaseLayout>

@@ -1,0 +1,32 @@
+---
+import { useTranslations, type Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+  name: string;
+  description: string;
+  /** Set once the tool page exists; card stays a non-link placeholder until then. */
+  href?: string;
+}
+
+const { lang, name, description, href } = Astro.props;
+const t = useTranslations(lang);
+---
+
+<article
+  class="group relative flex flex-col gap-2 rounded-xl border border-brand-border bg-brand-surface p-5 transition-colors hover:border-brand-purple/60"
+>
+  <div class="flex items-start justify-between gap-3">
+    <h2 class="font-semibold text-brand-text">
+      {href ? <a href={href} class="after:absolute after:inset-0">{name}</a> : name}
+    </h2>
+    {
+      !href && (
+        <span class="shrink-0 rounded-full border border-brand-cyan/40 bg-brand-cyan/10 px-2.5 py-0.5 text-xs font-medium text-brand-cyan">
+          {t('card.comingSoon')}
+        </span>
+      )
+    }
+  </div>
+  <p class="text-sm leading-relaxed text-brand-muted">{description}</p>
+</article>
