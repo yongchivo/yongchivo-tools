@@ -4,24 +4,24 @@
 
 ## Project status
 
-**Planning / pre-build** — _last updated 19 Jul 2026_
+**In build — hub and first tool live** — _last updated 19 Jul 2026_
 
 This project is built solo, end to end, using **Claude Code**, and tracked as a **Claude Project** for ongoing context.
 
 | Item | Status |
 |---|---|
-| Domain / subdomain | `tools.yongchivo.com` (Cloudflare-managed) — to be configured |
-| Hosting | Cloudflare Pages — to be set up |
+| Domain / subdomain | `tools.yongchivo.com` (Cloudflare-managed) — **live** |
+| Hosting | Cloudflare Workers static assets — **live**, git-connected auto-deploys from `main` |
 | Backend (for tools that need it) | Cloudflare Workers — to be set up |
 | Portfolio integration | Card to be added to `projects.astro` under **Cyber Security & Forensics** |
 
 **Roadmap (by wave)**
 
-- [ ] **Wave 1 — quick start (client-only, high SEO):** Password Generator → Subnet Calculator → Password Strength Analyzer
+- [ ] **Wave 1 — quick start (client-only, high SEO):** Password Generator ✅ → Subnet Calculator → Password Strength Analyzer
 - [ ] **Wave 2 — viral hook:** "Which cyber role are you?" quiz (email capture + links into the serious tools)
 - [ ] **Wave 3 — Worker-backed (higher value, more effort):** Security Headers Checker → Breach Checker
-- [ ] Bilingual routing live (EN at root, ES under `/es/`)
-- [ ] Shared header/footer with links back to yongchivo.com and PHV Prep UK
+- [x] Bilingual routing live (EN at root, ES under `/es/`)
+- [x] Shared header/footer with links back to yongchivo.com and PHV Prep UK
 - [ ] Newsletter capture wired to the quiz
 - [ ] Cloudflare Web Analytics enabled
 
