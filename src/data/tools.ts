@@ -23,6 +23,7 @@ export const tools: Tool[] = [
   },
   {
     slug: 'password-strength',
+    href: '/password-strength/',
     name: {
       en: 'Password Strength Analyzer',
       es: 'Analizador de fortaleza de contraseñas',
