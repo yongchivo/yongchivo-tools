@@ -1,0 +1,333 @@
+---
+import { useTranslations, type Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+---
+
+<div
+  id="subnetcalc"
+  class="max-w-2xl rounded-xl border border-brand-border bg-brand-surface p-5 sm:p-6"
+  data-err-format={t('subnet.errFormat')}
+  data-err-ip={t('subnet.errIp')}
+  data-err-prefix={t('subnet.errPrefix')}
+  data-err-mask={t('subnet.errMask')}
+  data-err-split-count={t('subnet.errSplitCount')}
+  data-err-split-too-small={t('subnet.errSplitTooSmall')}
+  data-scope-private={t('subnet.scopePrivate')}
+  data-scope-public={t('subnet.scopePublic')}
+  data-scope-loopback={t('subnet.scopeLoopback')}
+  data-scope-link-local={t('subnet.scopeLinkLocal')}
+  data-split-showing={t('subnet.splitShowing')}
+>
+  <label for="sc-input" class="mb-1.5 block text-sm">{t('subnet.inputLabel')}</label>
+  <div class="flex flex-col gap-2 sm:flex-row">
+    <input
+      id="sc-input"
+      type="text"
+      value="192.168.1.0/24"
+      placeholder="192.168.1.0/24"
+      autocomplete="off"
+      autocapitalize="off"
+      spellcheck="false"
+      class="min-w-0 flex-1 rounded-lg border border-brand-border bg-brand-bg px-3 py-2.5 font-mono text-sm text-brand-cyan focus:border-brand-purple focus:outline-none"
+    />
+    <button
+      id="sc-calc"
+      type="button"
+      class="rounded-lg border border-brand-purple/40 bg-brand-purple/20 px-4 py-2.5 text-sm font-medium text-brand-purple transition-colors hover:bg-brand-purple/30"
+    >
+      {t('subnet.calculate')}
+    </button>
+  </div>
+  <p class="mt-1.5 text-xs text-brand-muted">{t('subnet.inputHelp')}</p>
+  <p id="sc-error" class="mt-2 hidden text-sm text-red-400" role="alert"></p>
+
+  <div id="sc-results" class="mt-5 hidden border-t border-brand-border pt-5">
+    <dl class="grid gap-x-6 gap-y-4 sm:grid-cols-2">
+      <div>
+        <dt class="text-xs text-brand-muted">{t('subnet.network')}</dt>
+        <dd id="sc-network" class="mt-0.5 font-mono text-sm text-brand-cyan"></dd>
+      </div>
+      <div>
+        <dt class="text-xs text-brand-muted">{t('subnet.broadcast')}</dt>
+        <dd id="sc-broadcast" class="mt-0.5 font-mono text-sm text-brand-cyan"></dd>
+      </div>
+      <div>
+        <dt class="text-xs text-brand-muted">{t('subnet.mask')}</dt>
+        <dd id="sc-mask" class="mt-0.5 font-mono text-sm text-brand-cyan"></dd>
+      </div>
+      <div>
+        <dt class="text-xs text-brand-muted">{t('subnet.wildcard')}</dt>
+        <dd id="sc-wildcard" class="mt-0.5 font-mono text-sm text-brand-cyan"></dd>
+      </div>
+      <div class="sm:col-span-2">
+        <dt class="text-xs text-brand-muted">{t('subnet.hostRange')}</dt>
+        <dd id="sc-range" class="mt-0.5 font-mono text-sm text-brand-cyan"></dd>
+      </div>
+      <div>
+        <dt class="text-xs text-brand-muted">{t('subnet.totalAddresses')}</dt>
+        <dd id="sc-total" class="mt-0.5 font-mono text-sm text-brand-text"></dd>
+      </div>
+      <div>
+        <dt class="text-xs text-brand-muted">{t('subnet.usableHosts')}</dt>
+        <dd id="sc-usable" class="mt-0.5 font-mono text-sm text-brand-text"></dd>
+      </div>
+      <div>
+        <dt class="text-xs text-brand-muted">{t('subnet.ipClass')}</dt>
+        <dd id="sc-class" class="mt-0.5 font-mono text-sm text-brand-text"></dd>
+      </div>
+      <div>
+        <dt class="text-xs text-brand-muted">{t('subnet.scope')}</dt>
+        <dd id="sc-scope" class="mt-0.5 font-mono text-sm text-brand-text"></dd>
+      </div>
+    </dl>
+
+    <div class="mt-6 border-t border-brand-border pt-5">
+      <h2 class="mb-3 text-base font-semibold">{t('subnet.splitTitle')}</h2>
+      <label for="sc-split-count" class="mb-1.5 block text-sm">{t('subnet.splitLabel')}</label>
+      <div class="flex flex-col gap-2 sm:flex-row">
+        <input
+          id="sc-split-count"
+          type="number"
+          inputmode="numeric"
+          min="2"
+          max="1024"
+          placeholder="4"
+          class="w-full rounded-lg border border-brand-border bg-brand-bg px-3 py-2.5 font-mono text-sm text-brand-cyan focus:border-brand-purple focus:outline-none sm:w-40"
+        />
+        <button
+          id="sc-split"
+          type="button"
+          class="rounded-lg border border-brand-border px-4 py-2.5 text-sm font-medium text-brand-muted transition-colors hover:border-brand-cyan/60 hover:text-brand-cyan"
+        >
+          {t('subnet.splitBtn')}
+        </button>
+      </div>
+      <p class="mt-1.5 text-xs text-brand-muted">{t('subnet.splitHelp')}</p>
+      <p id="sc-split-error" class="mt-2 hidden text-sm text-red-400" role="alert"></p>
+
+      <div id="sc-split-results" class="mt-4 hidden overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-left text-xs text-brand-muted">
+              <th class="pb-2 pr-4 font-medium">{t('subnet.splitColSubnet')}</th>
+              <th class="pb-2 pr-4 font-medium">{t('subnet.splitColRange')}</th>
+              <th class="pb-2 font-medium">{t('subnet.splitColBroadcast')}</th>
+            </tr>
+          </thead>
+          <tbody id="sc-split-body" class="font-mono"></tbody>
+        </table>
+        <p id="sc-split-note" class="mt-2 hidden text-xs text-brand-muted"></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const root = document.getElementById('subnetcalc');
+  if (root) {
+    const $ = (id: string) => document.getElementById(id)!;
+    const input = $('sc-input') as HTMLInputElement;
+    const errorEl = $('sc-error');
+    const results = $('sc-results');
+    const splitCount = $('sc-split-count') as HTMLInputElement;
+    const splitError = $('sc-split-error');
+    const splitResults = $('sc-split-results');
+    const splitBody = $('sc-split-body');
+    const splitNote = $('sc-split-note');
+    const locale = document.documentElement.lang;
+
+    let base: { network: number; prefix: number } | null = null;
+
+    function parseIp(text: string): number | null {
+      const parts = text.split('.');
+      if (parts.length !== 4) return null;
+      let value = 0;
+      for (const part of parts) {
+        if (!/^\d{1,3}$/.test(part)) return null;
+        const octet = Number(part);
+        if (octet > 255) return null;
+        value = value * 256 + octet;
+      }
+      return value;
+    }
+
+    function ipToString(value: number): string {
+      return [24, 16, 8, 0].map((shift) => (value >>> shift) & 0xff).join('.');
+    }
+
+    function maskToPrefix(mask: number): number | null {
+      const bin = mask.toString(2).padStart(32, '0');
+      return /^1*0*$/.test(bin) ? (bin.match(/1/g) || []).length : null;
+    }
+
+    // Returns the parsed {ip, prefix} or the key of the error message.
+    function parseInput(text: string): { ip: number; prefix: number } | { error: string } {
+      const trimmed = text.trim();
+      let ipPart: string, maskPart: string;
+      const slash = trimmed.indexOf('/');
+      if (slash !== -1) {
+        ipPart = trimmed.slice(0, slash).trim();
+        maskPart = trimmed.slice(slash + 1).trim();
+      } else {
+        const parts = trimmed.split(/\s+/);
+        if (parts.length !== 2) return { error: 'errFormat' };
+        [ipPart, maskPart] = parts as [string, string];
+      }
+      const ip = parseIp(ipPart);
+      if (ip === null) return { error: 'errIp' };
+      if (/^\d+$/.test(maskPart)) {
+        const prefix = Number(maskPart);
+        if (prefix > 32) return { error: 'errPrefix' };
+        return { ip, prefix };
+      }
+      const mask = parseIp(maskPart);
+      if (mask === null) return { error: 'errFormat' };
+      const prefix = maskToPrefix(mask);
+      if (prefix === null) return { error: 'errMask' };
+      return { ip, prefix };
+    }
+
+    function subnetInfo(ip: number, prefix: number) {
+      const mask = prefix === 0 ? 0 : (0xffffffff << (32 - prefix)) >>> 0;
+      const network = (ip & mask) >>> 0;
+      const broadcast = (network | (~mask >>> 0)) >>> 0;
+      const total = 2 ** (32 - prefix);
+      let usable: number, firstHost: number, lastHost: number;
+      if (prefix === 32) {
+        usable = 1;
+        firstHost = lastHost = network;
+      } else if (prefix === 31) {
+        // RFC 3021: /31 point-to-point links use both addresses.
+        usable = 2;
+        firstHost = network;
+        lastHost = broadcast;
+      } else {
+        usable = total - 2;
+        firstHost = network + 1;
+        lastHost = broadcast - 1;
+      }
+      return { mask, network, broadcast, total, usable, firstHost, lastHost };
+    }
+
+    function inBlock(value: number, block: string, prefix: number): boolean {
+      const mask = (0xffffffff << (32 - prefix)) >>> 0;
+      return ((value & mask) >>> 0) === parseIp(block);
+    }
+
+    function scopeOf(network: number): string {
+      if (inBlock(network, '127.0.0.0', 8)) return root!.dataset.scopeLoopback!;
+      if (inBlock(network, '169.254.0.0', 16)) return root!.dataset.scopeLinkLocal!;
+      if (
+        inBlock(network, '10.0.0.0', 8) ||
+        inBlock(network, '172.16.0.0', 12) ||
+        inBlock(network, '192.168.0.0', 16)
+      )
+        return root!.dataset.scopePrivate!;
+      return root!.dataset.scopePublic!;
+    }
+
+    function classOf(network: number): string {
+      const first = network >>> 24;
+      if (first < 128) return 'A';
+      if (first < 192) return 'B';
+      if (first < 224) return 'C';
+      if (first < 240) return 'D';
+      return 'E';
+    }
+
+    function calculate() {
+      const parsed = parseInput(input.value);
+      if ('error' in parsed) {
+        errorEl.textContent = root!.dataset[parsed.error]!;
+        errorEl.classList.remove('hidden');
+        results.classList.add('hidden');
+        base = null;
+        return;
+      }
+      errorEl.classList.add('hidden');
+      const info = subnetInfo(parsed.ip, parsed.prefix);
+      base = { network: info.network, prefix: parsed.prefix };
+      $('sc-network').textContent = `${ipToString(info.network)}/${parsed.prefix}`;
+      $('sc-broadcast').textContent = ipToString(info.broadcast);
+      $('sc-mask').textContent = ipToString(info.mask);
+      $('sc-wildcard').textContent = ipToString((~info.mask) >>> 0);
+      $('sc-range').textContent = `${ipToString(info.firstHost)} – ${ipToString(info.lastHost)}`;
+      $('sc-total').textContent = info.total.toLocaleString(locale);
+      $('sc-usable').textContent = info.usable.toLocaleString(locale);
+      $('sc-class').textContent = classOf(info.network);
+      $('sc-scope').textContent = scopeOf(info.network);
+      results.classList.remove('hidden');
+      splitResults.classList.add('hidden');
+      splitError.classList.add('hidden');
+    }
+
+    const MAX_ROWS = 64;
+
+    function split() {
+      if (!base) return;
+      const n = Number(splitCount.value);
+      if (!Number.isInteger(n) || n < 2 || n > 1024) {
+        splitError.textContent = root!.dataset.errSplitCount!;
+        splitError.classList.remove('hidden');
+        splitResults.classList.add('hidden');
+        return;
+      }
+      const extraBits = Math.ceil(Math.log2(n));
+      const newPrefix = base.prefix + extraBits;
+      if (newPrefix > 32) {
+        splitError.textContent = root!.dataset.errSplitTooSmall!;
+        splitError.classList.remove('hidden');
+        splitResults.classList.add('hidden');
+        return;
+      }
+      splitError.classList.add('hidden');
+      const count = 2 ** extraBits;
+      const size = 2 ** (32 - newPrefix);
+      const shown = Math.min(count, MAX_ROWS);
+      splitBody.textContent = '';
+      for (let i = 0; i < shown; i++) {
+        const info = subnetInfo((base.network + i * size) >>> 0, newPrefix);
+        const row = document.createElement('tr');
+        row.className = 'border-t border-brand-border';
+        const cells = [
+          `${ipToString(info.network)}/${newPrefix}`,
+          `${ipToString(info.firstHost)} – ${ipToString(info.lastHost)}`,
+          ipToString(info.broadcast),
+        ];
+        cells.forEach((text, index) => {
+          const cell = document.createElement('td');
+          cell.className = index === 2 ? 'py-1.5 whitespace-nowrap' : 'py-1.5 pr-4 whitespace-nowrap';
+          cell.textContent = text;
+          row.appendChild(cell);
+        });
+        splitBody.appendChild(row);
+      }
+      if (count > shown) {
+        splitNote.textContent = root!.dataset
+          .splitShowing!.replace('{shown}', String(shown))
+          .replace('{total}', count.toLocaleString(locale));
+        splitNote.classList.remove('hidden');
+      } else {
+        splitNote.classList.add('hidden');
+      }
+      splitResults.classList.remove('hidden');
+    }
+
+    $('sc-calc').addEventListener('click', calculate);
+    input.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') calculate();
+    });
+    $('sc-split').addEventListener('click', split);
+    splitCount.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') split();
+    });
+
+    calculate();
+  }
+</script>

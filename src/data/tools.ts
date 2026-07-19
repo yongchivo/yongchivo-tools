@@ -34,6 +34,7 @@ export const tools: Tool[] = [
   },
   {
     slug: 'subnet-calculator',
+    href: '/subnet-calculator/',
     name: {
       en: 'Subnet Calculator',
       es: 'Calculadora de subredes',
