@@ -16,7 +16,13 @@ const ts = t as unknown as (key: string) => string;
 const toolBySlug = (slug: string) => tools.find((tool) => tool.slug === slug);
 ---
 
-<div id="cyberquiz" class="max-w-2xl" data-progress-template={t('quiz.ui.progress')}>
+<div
+  id="cyberquiz"
+  class="max-w-2xl"
+  data-progress-template={t('quiz.ui.progress')}
+  data-label-subscribe={t('quiz.ui.subscribe')}
+  data-label-subscribing={t('quiz.ui.subscribing')}
+>
   <div id="qz-quiz" class="rounded-xl border border-brand-border bg-brand-surface p-5 sm:p-6">
     <div class="mb-5">
       <div class="h-1.5 overflow-hidden rounded-full bg-brand-border">
@@ -110,6 +116,9 @@ const toolBySlug = (slug: string) => tools.find((tool) => tool.slug === slug);
       <p id="qz-news-error" class="mt-2 hidden text-sm text-red-400" role="alert">
         {t('quiz.ui.emailInvalid')}
       </p>
+      <p id="qz-news-fail" class="mt-2 hidden text-sm text-red-400" role="alert">
+        {t('quiz.ui.subscribeError')}
+      </p>
       <p id="qz-news-ok" class="mt-2 hidden text-sm text-emerald-400" role="status">
         {t('quiz.ui.subscribed')}
       </p>
@@ -138,6 +147,7 @@ const toolBySlug = (slug: string) => tools.find((tool) => tool.slug === slug);
     const newsForm = $('qz-news') as HTMLFormElement;
     const emailInput = $('qz-email') as HTMLInputElement;
     const newsError = $('qz-news-error');
+    const newsFail = $('qz-news-fail');
     const newsOk = $('qz-news-ok');
     const template = root.dataset.progressTemplate!;
     // Order doubles as the tie-breaker, mirroring roles order in quiz.ts.
@@ -192,6 +202,7 @@ const toolBySlug = (slug: string) => tools.find((tool) => tool.slug === slug);
       newsForm.reset();
       newsForm.classList.remove('hidden');
       newsError.classList.add('hidden');
+      newsFail.classList.add('hidden');
       newsOk.classList.add('hidden');
       resultsEl.classList.add('hidden');
       quizEl.classList.remove('hidden');
@@ -199,22 +210,36 @@ const toolBySlug = (slug: string) => tools.find((tool) => tool.slug === slug);
       quizEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
 
-    newsForm.addEventListener('submit', (event) => {
+    newsForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       if (!emailInput.value.trim() || !emailInput.checkValidity()) {
         newsError.classList.remove('hidden');
         return;
       }
       newsError.classList.add('hidden');
-      // Stub: no backend yet. Real newsletter integration (Worker/ESP) is a
-      // separate follow-up; this only logs locally and shows the success state.
-      console.log('[newsletter-stub] subscribe', {
-        email: emailInput.value.trim(),
-        role: winner,
-        lang: document.documentElement.lang,
-      });
-      newsForm.classList.add('hidden');
-      newsOk.classList.remove('hidden');
+      newsFail.classList.add('hidden');
+      const submitBtn = newsForm.querySelector('button')!;
+      submitBtn.disabled = true;
+      submitBtn.textContent = root.dataset.labelSubscribing!;
+      try {
+        const response = await fetch('/api/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: emailInput.value.trim(),
+            matchedRole: winner,
+            language: document.documentElement.lang,
+          }),
+        });
+        if (!response.ok) throw new Error(String(response.status));
+        newsForm.classList.add('hidden');
+        newsOk.classList.remove('hidden');
+      } catch {
+        newsFail.classList.remove('hidden');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = root.dataset.labelSubscribe!;
+      }
     });
 
     showQuestion(0);

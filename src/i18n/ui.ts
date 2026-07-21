@@ -187,6 +187,8 @@ export const ui = {
     'quiz.ui.emailPlaceholder': 'you@example.com',
     'quiz.ui.subscribe': 'Join free',
     'quiz.ui.emailInvalid': 'Enter a valid email address',
+    'quiz.ui.subscribing': 'Joining…',
+    'quiz.ui.subscribeError': 'Something went wrong — please try again in a moment.',
     'quiz.ui.subscribed': "You're in! Keep an eye on your inbox. 🎉",
     'footer.builtBy': 'Built by Yongchivo',
     'footer.privacy': 'Client-side tools run entirely in your browser — no data leaves your device.',
@@ -370,6 +372,8 @@ export const ui = {
     'quiz.ui.emailPlaceholder': 'tu@ejemplo.com',
     'quiz.ui.subscribe': 'Únete gratis',
     'quiz.ui.emailInvalid': 'Introduce un correo electrónico válido',
+    'quiz.ui.subscribing': 'Uniéndote…',
+    'quiz.ui.subscribeError': 'Algo ha salido mal — inténtalo de nuevo en un momento.',
     'quiz.ui.subscribed': '¡Dentro! Estate atento a tu bandeja. 🎉',
     'footer.builtBy': 'Creado por Yongchivo',
     'footer.privacy':
