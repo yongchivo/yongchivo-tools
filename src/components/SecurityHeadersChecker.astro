@@ -1,0 +1,202 @@
+---
+import { ui, useTranslations, type Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+// Header/leak copy + error messages the client script needs, passed via a
+// data attribute so the page needs no inline <script> (keeps CSP script-src 'self').
+const shStrings = JSON.stringify(
+  Object.fromEntries(Object.entries(ui[lang]).filter(([key]) => key.startsWith('sh.')))
+);
+---
+
+<div
+  id="shcheck"
+  class="max-w-2xl"
+  data-label-check={t('sh.check')}
+  data-label-checking={t('sh.checking')}
+  data-status-pass={t('sh.status.pass')}
+  data-status-warn={t('sh.status.warn')}
+  data-status-fail={t('sh.status.fail')}
+  data-checked-label={t('sh.checkedUrl')}
+  data-leak-heading={t('sh.leakHeading')}
+  data-strings={shStrings}
+>
+  <div class="rounded-xl border border-brand-border bg-brand-surface p-5 sm:p-6">
+    <label for="sh-input" class="mb-1.5 block text-sm">{t('sh.inputLabel')}</label>
+    <form id="sh-form" class="flex flex-col gap-2 sm:flex-row" novalidate>
+      <input
+        id="sh-input"
+        type="url"
+        inputmode="url"
+        autocapitalize="off"
+        autocomplete="off"
+        spellcheck="false"
+        placeholder={t('sh.inputPlaceholder')}
+        class="min-w-0 flex-1 rounded-lg border border-brand-border bg-brand-bg px-3 py-2.5 font-mono text-sm text-brand-cyan focus:border-brand-purple focus:outline-none"
+      />
+      <button
+        id="sh-btn"
+        type="submit"
+        class="rounded-lg border border-brand-purple/40 bg-brand-purple/20 px-4 py-2.5 text-sm font-medium text-brand-purple transition-colors hover:bg-brand-purple/30 disabled:opacity-60"
+      >
+        {t('sh.check')}
+      </button>
+    </form>
+    <p id="sh-error" class="mt-2 hidden text-sm text-red-400" role="alert"></p>
+  </div>
+
+  <div id="sh-results" class="mt-5 hidden">
+    <div
+      class="flex items-center gap-4 rounded-xl border border-brand-border bg-brand-surface p-5 sm:p-6"
+    >
+      <div
+        id="sh-grade"
+        class="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl text-3xl font-bold"
+      >
+      </div>
+      <div class="min-w-0">
+        <p class="text-xs uppercase tracking-widest text-brand-muted">{t('sh.gradeLabel')}</p>
+        <p class="mt-0.5 text-sm text-brand-muted">
+          {t('sh.checkedUrl')}: <span id="sh-url" class="break-all font-mono text-brand-cyan"></span>
+        </p>
+      </div>
+    </div>
+
+    <div id="sh-list" class="mt-4 space-y-3"></div>
+
+    <div id="sh-leak" class="mt-4 hidden rounded-xl border border-brand-border bg-brand-surface p-5">
+      <h2 id="sh-leak-heading" class="mb-3 font-semibold text-amber-400"></h2>
+      <div id="sh-leak-list" class="space-y-3"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const root = document.getElementById('shcheck');
+  if (root) {
+    const $ = (id: string) => document.getElementById(id)!;
+    const form = $('sh-form') as HTMLFormElement;
+    const input = $('sh-input') as HTMLInputElement;
+    const btn = $('sh-btn') as HTMLButtonElement;
+    const errorEl = $('sh-error');
+    const results = $('sh-results');
+    const list = $('sh-list');
+    const gradeEl = $('sh-grade');
+    const urlEl = $('sh-url');
+    const leak = $('sh-leak');
+    const leakList = $('sh-leak-list');
+
+    const d = root.dataset;
+    // Translated header/leak copy, passed from the component via a data attribute.
+    const T = JSON.parse(d.strings!) as Record<string, string>;
+
+    const STATUS = {
+      pass: { label: d.statusPass!, mark: '✓', cls: 'text-emerald-400', border: 'border-emerald-400/30' },
+      warn: { label: d.statusWarn!, mark: '!', cls: 'text-amber-400', border: 'border-amber-400/30' },
+      fail: { label: d.statusFail!, mark: '✗', cls: 'text-red-400', border: 'border-red-400/30' },
+    } as const;
+
+    const GRADE_CLS: Record<string, string> = {
+      A: 'bg-emerald-400/15 text-emerald-400',
+      B: 'bg-brand-cyan/15 text-brand-cyan',
+      C: 'bg-amber-400/15 text-amber-400',
+      D: 'bg-orange-400/15 text-orange-400',
+      E: 'bg-red-400/15 text-red-400',
+      F: 'bg-red-500/20 text-red-500',
+    };
+
+    function row(name: string, desc: string, value?: string, status?: keyof typeof STATUS) {
+      const s = status ? STATUS[status] : null;
+      const el = document.createElement('div');
+      el.className = `rounded-xl border bg-brand-surface p-4 ${s ? s.border : 'border-brand-border'}`;
+      const header = document.createElement('div');
+      header.className = 'flex items-start justify-between gap-3';
+      const left = document.createElement('div');
+      const h = document.createElement('h3');
+      h.className = 'font-mono text-sm font-semibold text-brand-text';
+      h.textContent = name;
+      left.appendChild(h);
+      header.appendChild(left);
+      if (s) {
+        const badge = document.createElement('span');
+        badge.className = `shrink-0 text-sm font-medium ${s.cls}`;
+        badge.textContent = `${s.mark} ${s.label}`;
+        header.appendChild(badge);
+      }
+      el.appendChild(header);
+      const p = document.createElement('p');
+      p.className = 'mt-1.5 text-sm text-brand-muted';
+      p.textContent = desc;
+      el.appendChild(p);
+      if (value) {
+        const code = document.createElement('p');
+        code.className = 'mt-2 break-all rounded bg-brand-bg px-2 py-1 font-mono text-xs text-brand-cyan';
+        code.textContent = value.length > 300 ? value.slice(0, 300) + '…' : value;
+        el.appendChild(code);
+      }
+      return el;
+    }
+
+    function showError(key: string) {
+      errorEl.textContent = T[`sh.err.${key}`] ?? T['sh.err.generic'];
+      errorEl.classList.remove('hidden');
+      results.classList.add('hidden');
+    }
+
+    async function check(event: Event) {
+      event.preventDefault();
+      const value = input.value.trim();
+      if (!value) return;
+      errorEl.classList.add('hidden');
+      btn.disabled = true;
+      btn.textContent = d.labelChecking!;
+      try {
+        const response = await fetch('/api/check-headers', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: value }),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          showError(data.error ?? 'generic');
+          return;
+        }
+        gradeEl.textContent = data.grade;
+        gradeEl.className =
+          'flex h-16 w-16 shrink-0 items-center justify-center rounded-xl text-3xl font-bold ' +
+          (GRADE_CLS[data.grade] ?? GRADE_CLS.F);
+        urlEl.textContent = data.finalUrl;
+        list.textContent = '';
+        for (const r of data.results as { id: string; status: keyof typeof STATUS; value?: string }[]) {
+          list.appendChild(
+            row(T[`sh.h.${r.id}.name`], T[`sh.h.${r.id}.desc`], r.value, r.status)
+          );
+        }
+        leakList.textContent = '';
+        if (data.infoLeak?.length) {
+          $('sh-leak-heading').textContent = d.leakHeading!;
+          for (const item of data.infoLeak as { id: string; value: string }[]) {
+            leakList.appendChild(row(T[`sh.leak.${item.id}.name`], T[`sh.leak.${item.id}.desc`], item.value));
+          }
+          leak.classList.remove('hidden');
+        } else {
+          leak.classList.add('hidden');
+        }
+        results.classList.remove('hidden');
+      } catch {
+        showError('generic');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = d.labelCheck!;
+      }
+    }
+
+    form.addEventListener('submit', check);
+  }
+</script>

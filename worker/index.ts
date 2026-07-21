@@ -1,59 +1,17 @@
-// Worker entry: serves the static site from assets and handles
-// POST /api/subscribe as a secure proxy to Beehiiv (API key stays server-side).
+// Worker entry: serves the static site from assets and handles the API routes
+// (POST /api/subscribe → Beehiiv proxy, POST /api/check-headers → header grader).
 
-interface RateLimiter {
-  limit(options: { key: string }): Promise<{ success: boolean }>;
-}
-
-interface Env {
-  ASSETS: { fetch(request: Request): Promise<Response> };
-  RATE_LIMITER: RateLimiter;
-  /** Set via `wrangler secret put BEEHIIV_API_KEY` — never in code. */
-  BEEHIIV_API_KEY?: string;
-  BEEHIIV_PUBLICATION_ID: string;
-}
-
-const ALLOWED_ORIGINS = new Set([
-  'https://tools.yongchivo.com',
-  'http://localhost:8787', // wrangler dev
-]);
+import { type Env, json, preflightOrReject, VALID_LANGS } from './shared';
+import { handleCheckHeaders } from './headers';
 
 // Mirrors RoleId in src/data/quiz.ts.
 const VALID_ROLES = new Set(['pt', 'soc', 'df', 'se', 'grc']);
-const VALID_LANGS = new Set(['en', 'es']);
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
-function json(status: number, body: unknown, origin: string | null): Response {
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  if (origin && ALLOWED_ORIGINS.has(origin)) {
-    headers['Access-Control-Allow-Origin'] = origin;
-    headers['Vary'] = 'Origin';
-  }
-  return new Response(JSON.stringify(body), { status, headers });
-}
-
 async function handleSubscribe(request: Request, env: Env): Promise<Response> {
+  const gate = preflightOrReject(request);
+  if (gate) return gate;
   const origin = request.headers.get('Origin');
-
-  if (request.method === 'OPTIONS') {
-    if (!origin || !ALLOWED_ORIGINS.has(origin)) return new Response(null, { status: 403 });
-    return new Response(null, {
-      status: 204,
-      headers: {
-        'Access-Control-Allow-Origin': origin,
-        'Access-Control-Allow-Methods': 'POST',
-        'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Max-Age': '86400',
-        Vary: 'Origin',
-      },
-    });
-  }
-
-  if (request.method !== 'POST') return json(405, { error: 'method_not_allowed' }, origin);
-
-  // Browser requests are same-origin (no CORS needed); this rejects any
-  // browser-issued cross-origin call outright.
-  if (origin && !ALLOWED_ORIGINS.has(origin)) return json(403, { error: 'forbidden_origin' }, null);
 
   const ip = request.headers.get('CF-Connecting-IP') ?? 'unknown';
   const { success: withinLimit } = await env.RATE_LIMITER.limit({ key: ip });
@@ -119,6 +77,9 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     if (url.pathname === '/api/subscribe') return handleSubscribe(request, env);
+    if (url.pathname === '/api/check-headers') return handleCheckHeaders(request, env);
+    // Static assets are served by the assets runtime (which also applies the
+    // security headers from public/_headers); the Worker only fronts /api/*.
     return env.ASSETS.fetch(request);
   },
 };

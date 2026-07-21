@@ -59,6 +59,7 @@ export const tools: Tool[] = [
   },
   {
     slug: 'security-headers',
+    href: '/security-headers/',
     name: {
       en: 'Security Headers Checker',
       es: 'Verificador de cabeceras de seguridad',

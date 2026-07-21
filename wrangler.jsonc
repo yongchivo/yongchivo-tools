@@ -14,8 +14,9 @@
     // Publication ID is not a secret; the API key is (wrangler secret put BEEHIIV_API_KEY).
     "BEEHIIV_PUBLICATION_ID": "pub_48f32801-2587-4c50-85eb-9309756e2898"
   },
-  // Per-IP rate limit for /api/subscribe: 5 requests per 60s.
-  // The ratelimit binding is Cloudflare's lightweight native limiter (open beta).
+  // Per-IP rate limits (Cloudflare's lightweight native limiter, open beta):
+  //   RATE_LIMITER         → /api/subscribe:     5 requests / 60s
+  //   HEADERS_RATE_LIMITER → /api/check-headers: 10 requests / 60s
   "unsafe": {
     "bindings": [
       {
@@ -23,6 +24,12 @@
         "type": "ratelimit",
         "namespace_id": "1001",
         "simple": { "limit": 5, "period": 60 }
+      },
+      {
+        "name": "HEADERS_RATE_LIMITER",
+        "type": "ratelimit",
+        "namespace_id": "1002",
+        "simple": { "limit": 10, "period": 60 }
       }
     ]
   }

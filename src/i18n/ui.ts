@@ -190,6 +190,48 @@ export const ui = {
     'quiz.ui.subscribing': 'Joining…',
     'quiz.ui.subscribeError': 'Something went wrong — please try again in a moment.',
     'quiz.ui.subscribed': "You're in! Keep an eye on your inbox. 🎉",
+    // Security Headers Checker
+    'sh.title': 'Security Headers Checker',
+    'sh.metaDescription':
+      "Check any website's HTTP security headers and get an A–F grade: HSTS, Content-Security-Policy, X-Frame-Options and more, each explained in plain language.",
+    'sh.heading': 'Security Headers Checker',
+    'sh.intro':
+      "Paste a URL and we'll fetch its HTTP response headers server-side and grade its security posture A–F — with a plain-language explanation of each header.",
+    'sh.inputLabel': 'Website URL',
+    'sh.inputPlaceholder': 'https://example.com',
+    'sh.check': 'Check',
+    'sh.checking': 'Checking…',
+    'sh.gradeLabel': 'Overall grade',
+    'sh.checkedUrl': 'Checked',
+    'sh.status.pass': 'Present',
+    'sh.status.warn': 'Needs attention',
+    'sh.status.fail': 'Missing',
+    'sh.leakHeading': 'Information disclosure',
+    'sh.err.invalid_url':
+      'That URL was rejected. Enter a public http(s) website address (internal or private addresses are blocked).',
+    'sh.err.fetch_failed': "Couldn't reach that site — it may be down, too slow, or blocking requests.",
+    'sh.err.too_many_redirects': 'That site redirected too many times to follow safely.',
+    'sh.err.generic': 'Something went wrong — please try again in a moment.',
+    'sh.h.hsts.name': 'Strict-Transport-Security (HSTS)',
+    'sh.h.hsts.desc':
+      'Forces browsers to use HTTPS, protecting against downgrade and cookie-hijacking attacks on untrusted networks.',
+    'sh.h.csp.name': 'Content-Security-Policy',
+    'sh.h.csp.desc':
+      'Controls which scripts, styles and resources may load — the strongest defense against cross-site scripting (XSS).',
+    'sh.h.xfo.name': 'X-Frame-Options',
+    'sh.h.xfo.desc': 'Stops other sites from embedding yours in a frame, preventing clickjacking.',
+    'sh.h.xcto.name': 'X-Content-Type-Options',
+    'sh.h.xcto.desc': "Set to “nosniff”, it stops browsers guessing a file's type — blocking a class of drive-by attacks.",
+    'sh.h.rp.name': 'Referrer-Policy',
+    'sh.h.rp.desc': 'Limits how much of your URL is shared with other sites users click through to.',
+    'sh.h.pp.name': 'Permissions-Policy',
+    'sh.h.pp.desc': 'Declares which browser features (camera, mic, geolocation…) the site is allowed to use.',
+    'sh.leak.server.name': 'Server',
+    'sh.leak.server.desc':
+      'Reveals server software and version, helping attackers target known vulnerabilities. Consider hiding the version.',
+    'sh.leak.xpb.name': 'X-Powered-By',
+    'sh.leak.xpb.desc':
+      'Discloses the backend technology. It serves no purpose for visitors — safe to remove.',
     'footer.builtBy': 'Built by Yongchivo',
     'footer.privacy': 'Client-side tools run entirely in your browser — no data leaves your device.',
   },
@@ -375,6 +417,51 @@ export const ui = {
     'quiz.ui.subscribing': 'Uniéndote…',
     'quiz.ui.subscribeError': 'Algo ha salido mal — inténtalo de nuevo en un momento.',
     'quiz.ui.subscribed': '¡Dentro! Estate atento a tu bandeja. 🎉',
+    // Verificador de cabeceras de seguridad
+    'sh.title': 'Verificador de cabeceras de seguridad',
+    'sh.metaDescription':
+      'Comprueba las cabeceras de seguridad HTTP de cualquier web y obtén una nota de la A a la F: HSTS, Content-Security-Policy, X-Frame-Options y más, cada una explicada en lenguaje claro.',
+    'sh.heading': 'Verificador de cabeceras de seguridad',
+    'sh.intro':
+      'Pega una URL y obtendremos sus cabeceras de respuesta HTTP desde el servidor y evaluaremos su seguridad de la A a la F — con una explicación clara de cada cabecera.',
+    'sh.inputLabel': 'URL del sitio web',
+    'sh.inputPlaceholder': 'https://ejemplo.com',
+    'sh.check': 'Verificar',
+    'sh.checking': 'Verificando…',
+    'sh.gradeLabel': 'Nota global',
+    'sh.checkedUrl': 'Analizado',
+    'sh.status.pass': 'Presente',
+    'sh.status.warn': 'Requiere atención',
+    'sh.status.fail': 'Ausente',
+    'sh.leakHeading': 'Divulgación de información',
+    'sh.err.invalid_url':
+      'Esa URL fue rechazada. Introduce una dirección web pública http(s) (las direcciones internas o privadas están bloqueadas).',
+    'sh.err.fetch_failed':
+      'No se pudo acceder a ese sitio — puede estar caído, ser demasiado lento o bloquear las peticiones.',
+    'sh.err.too_many_redirects': 'Ese sitio redirigió demasiadas veces para seguirlo de forma segura.',
+    'sh.err.generic': 'Algo ha salido mal — inténtalo de nuevo en un momento.',
+    'sh.h.hsts.name': 'Strict-Transport-Security (HSTS)',
+    'sh.h.hsts.desc':
+      'Obliga a los navegadores a usar HTTPS, protegiendo frente a ataques de degradación y robo de cookies en redes no confiables.',
+    'sh.h.csp.name': 'Content-Security-Policy',
+    'sh.h.csp.desc':
+      'Controla qué scripts, estilos y recursos pueden cargarse — la defensa más fuerte contra el cross-site scripting (XSS).',
+    'sh.h.xfo.name': 'X-Frame-Options',
+    'sh.h.xfo.desc': 'Impide que otros sitios inserten el tuyo en un marco, evitando el clickjacking.',
+    'sh.h.xcto.name': 'X-Content-Type-Options',
+    'sh.h.xcto.desc':
+      'Con el valor «nosniff», impide que el navegador adivine el tipo de un archivo — bloqueando toda una clase de ataques.',
+    'sh.h.rp.name': 'Referrer-Policy',
+    'sh.h.rp.desc': 'Limita cuánto de tu URL se comparte con otros sitios a los que el usuario accede.',
+    'sh.h.pp.name': 'Permissions-Policy',
+    'sh.h.pp.desc':
+      'Declara qué funciones del navegador (cámara, micrófono, geolocalización…) puede usar el sitio.',
+    'sh.leak.server.name': 'Server',
+    'sh.leak.server.desc':
+      'Revela el software del servidor y su versión, ayudando a los atacantes a apuntar a vulnerabilidades conocidas. Considera ocultar la versión.',
+    'sh.leak.xpb.name': 'X-Powered-By',
+    'sh.leak.xpb.desc':
+      'Revela la tecnología del backend. No aporta nada a los visitantes — es seguro eliminarla.',
     'footer.builtBy': 'Creado por Yongchivo',
     'footer.privacy':
       'Las herramientas del lado del cliente funcionan íntegramente en tu navegador — ningún dato sale de tu dispositivo.',
