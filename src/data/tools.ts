@@ -71,6 +71,7 @@ export const tools: Tool[] = [
   },
   {
     slug: 'breach-check',
+    href: '/breach-check/',
     name: {
       en: 'Breach Checker',
       es: 'Comprobador de filtraciones',

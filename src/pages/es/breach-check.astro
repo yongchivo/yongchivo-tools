@@ -1,0 +1,26 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BreachChecker from '../../components/BreachChecker.astro';
+import RelatedTools from '../../components/RelatedTools.astro';
+import { useTranslations } from '../../i18n/ui';
+
+const lang = 'es';
+const t = useTranslations(lang);
+---
+
+<BaseLayout lang={lang} title={t('bch.title')} description={t('bch.metaDescription')}>
+  <section class="mb-8 max-w-2xl">
+    <h1 class="mb-3 text-3xl font-bold tracking-tight sm:text-4xl">
+      <span
+        class="bg-gradient-to-r from-brand-magenta via-brand-purple to-brand-cyan bg-clip-text text-transparent"
+      >
+        {t('bch.heading')}
+      </span>
+    </h1>
+    <p class="text-brand-muted">{t('bch.intro')}</p>
+  </section>
+
+  <BreachChecker lang={lang} />
+
+  <RelatedTools lang={lang} slugs={['password-strength', 'password-generator']} />
+</BaseLayout>

@@ -1,0 +1,193 @@
+---
+import { useTranslations, type Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+---
+
+<div
+  id="breachcheck"
+  class="max-w-2xl"
+  data-label-check={t('bch.check')}
+  data-label-checking={t('bch.checking')}
+  data-found-title={t('bch.foundTitle')}
+  data-found-intro={t('bch.foundIntro')}
+  data-exposed-data={t('bch.exposedData')}
+  data-records={t('bch.records')}
+  data-and-more={t('bch.andMore')}
+  data-err-invalid={t('bch.errInvalid')}
+  data-err-generic={t('bch.errGeneric')}
+>
+  <div class="rounded-xl border border-brand-border bg-brand-surface p-5 sm:p-6">
+    <label for="bc-input" class="mb-1.5 block text-sm">{t('bch.inputLabel')}</label>
+    <form id="bc-form" class="flex flex-col gap-2 sm:flex-row" novalidate>
+      <input
+        id="bc-input"
+        type="email"
+        inputmode="email"
+        autocapitalize="off"
+        autocomplete="off"
+        spellcheck="false"
+        placeholder={t('bch.placeholder')}
+        class="min-w-0 flex-1 rounded-lg border border-brand-border bg-brand-bg px-3 py-2.5 font-mono text-sm text-brand-cyan focus:border-brand-purple focus:outline-none"
+      />
+      <button
+        id="bc-btn"
+        type="submit"
+        class="rounded-lg border border-brand-purple/40 bg-brand-purple/20 px-4 py-2.5 text-sm font-medium text-brand-purple transition-colors hover:bg-brand-purple/30 disabled:opacity-60"
+      >
+        {t('bch.check')}
+      </button>
+    </form>
+    <p id="bc-error" class="mt-2 hidden text-sm text-red-400" role="alert"></p>
+    <p class="mt-3 text-xs leading-relaxed text-brand-muted">{t('bch.privacyNote')}</p>
+  </div>
+
+  <!-- Not-found state -->
+  <div
+    id="bc-clear"
+    class="mt-5 hidden rounded-xl border border-emerald-400/30 bg-emerald-400/5 p-5 sm:p-6"
+    role="status"
+  >
+    <h2 class="text-lg font-semibold text-emerald-400">{t('bch.notFoundTitle')}</h2>
+    <p class="mt-2 text-sm leading-relaxed text-brand-muted">{t('bch.notFoundNote')}</p>
+  </div>
+
+  <!-- Found state -->
+  <div id="bc-found" class="mt-5 hidden" role="alert">
+    <div class="rounded-xl border border-red-400/30 bg-red-400/5 p-5 sm:p-6">
+      <h2 id="bc-found-title" class="text-lg font-semibold text-red-400"></h2>
+      <p id="bc-found-intro" class="mt-2 text-sm leading-relaxed text-brand-muted"></p>
+    </div>
+    <div id="bc-list" class="mt-4 space-y-3"></div>
+    <p id="bc-more" class="mt-3 hidden text-sm text-brand-muted"></p>
+  </div>
+</div>
+
+<script>
+  const root = document.getElementById('breachcheck');
+  if (root) {
+    const $ = (id: string) => document.getElementById(id)!;
+    const form = $('bc-form') as HTMLFormElement;
+    const input = $('bc-input') as HTMLInputElement;
+    const btn = $('bc-btn') as HTMLButtonElement;
+    const errorEl = $('bc-error');
+    const clearEl = $('bc-clear');
+    const foundEl = $('bc-found');
+    const list = $('bc-list');
+    const moreEl = $('bc-more');
+    const d = root.dataset;
+    const locale = document.documentElement.lang;
+
+    interface Breach {
+      name: string;
+      year: string;
+      dataTypes: string[];
+      records: number;
+    }
+
+    function breachCard(b: Breach) {
+      const el = document.createElement('div');
+      el.className = 'rounded-xl border border-brand-border bg-brand-surface p-4';
+      const head = document.createElement('div');
+      head.className = 'flex items-baseline justify-between gap-3';
+      const name = document.createElement('h3');
+      name.className = 'font-semibold text-brand-text';
+      name.textContent = b.name;
+      head.appendChild(name);
+      if (b.year) {
+        const year = document.createElement('span');
+        year.className = 'shrink-0 font-mono text-xs text-brand-muted';
+        year.textContent = b.year;
+        head.appendChild(year);
+      }
+      el.appendChild(head);
+
+      if (b.records > 0) {
+        const rec = document.createElement('p');
+        rec.className = 'mt-1 text-xs text-brand-muted';
+        rec.textContent = d.records!.replace('{n}', b.records.toLocaleString(locale));
+        el.appendChild(rec);
+      }
+
+      if (b.dataTypes.length) {
+        const label = document.createElement('p');
+        label.className = 'mt-2.5 text-xs text-brand-muted';
+        label.textContent = d.exposedData!;
+        el.appendChild(label);
+        const chips = document.createElement('div');
+        chips.className = 'mt-1 flex flex-wrap gap-1.5';
+        for (const type of b.dataTypes) {
+          const chip = document.createElement('span');
+          chip.className =
+            'rounded-full border border-brand-border bg-brand-bg px-2 py-0.5 text-xs text-brand-cyan';
+          chip.textContent = type;
+          chips.appendChild(chip);
+        }
+        el.appendChild(chips);
+      }
+      return el;
+    }
+
+    function reset() {
+      errorEl.classList.add('hidden');
+      clearEl.classList.add('hidden');
+      foundEl.classList.add('hidden');
+    }
+
+    async function check(event: Event) {
+      event.preventDefault();
+      const email = input.value.trim();
+      if (!email || !input.checkValidity()) {
+        reset();
+        errorEl.textContent = d.errInvalid!;
+        errorEl.classList.remove('hidden');
+        return;
+      }
+      reset();
+      btn.disabled = true;
+      btn.textContent = d.labelChecking!;
+      try {
+        const response = await fetch('/api/breach-check', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email }),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          errorEl.textContent = data.error === 'invalid_email' ? d.errInvalid! : d.errGeneric!;
+          errorEl.classList.remove('hidden');
+          return;
+        }
+        if (!data.found) {
+          clearEl.classList.remove('hidden');
+          return;
+        }
+        $('bc-found-title').textContent = d.foundTitle!.replace('{n}', String(data.count));
+        $('bc-found-intro').textContent = d.foundIntro!;
+        list.textContent = '';
+        for (const b of data.breaches as Breach[]) list.appendChild(breachCard(b));
+        const remaining = data.count - data.breaches.length;
+        if (remaining > 0) {
+          moreEl.textContent = d.andMore!.replace('{n}', String(remaining));
+          moreEl.classList.remove('hidden');
+        } else {
+          moreEl.classList.add('hidden');
+        }
+        foundEl.classList.remove('hidden');
+      } catch {
+        errorEl.textContent = d.errGeneric!;
+        errorEl.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = d.labelCheck!;
+      }
+    }
+
+    form.addEventListener('submit', check);
+  }
+</script>

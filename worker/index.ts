@@ -1,12 +1,12 @@
 // Worker entry: serves the static site from assets and handles the API routes
 // (POST /api/subscribe → Beehiiv proxy, POST /api/check-headers → header grader).
 
-import { type Env, json, preflightOrReject, VALID_LANGS } from './shared';
+import { type Env, EMAIL_RE, json, preflightOrReject, VALID_LANGS } from './shared';
 import { handleCheckHeaders } from './headers';
+import { handleBreachCheck } from './breach';
 
 // Mirrors RoleId in src/data/quiz.ts.
 const VALID_ROLES = new Set(['pt', 'soc', 'df', 'se', 'grc']);
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 async function handleSubscribe(request: Request, env: Env): Promise<Response> {
   const gate = preflightOrReject(request);
@@ -78,6 +78,7 @@ export default {
     const url = new URL(request.url);
     if (url.pathname === '/api/subscribe') return handleSubscribe(request, env);
     if (url.pathname === '/api/check-headers') return handleCheckHeaders(request, env);
+    if (url.pathname === '/api/breach-check') return handleBreachCheck(request, env);
     // Static assets are served by the assets runtime (which also applies the
     // security headers from public/_headers); the Worker only fronts /api/*.
     return env.ASSETS.fetch(request);

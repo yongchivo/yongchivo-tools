@@ -17,6 +17,7 @@
   // Per-IP rate limits (Cloudflare's lightweight native limiter, open beta):
   //   RATE_LIMITER         → /api/subscribe:     5 requests / 60s
   //   HEADERS_RATE_LIMITER → /api/check-headers: 10 requests / 60s
+  //   BREACH_RATE_LIMITER  → /api/breach-check:  8 requests / 60s
   "unsafe": {
     "bindings": [
       {
@@ -30,6 +31,12 @@
         "type": "ratelimit",
         "namespace_id": "1002",
         "simple": { "limit": 10, "period": 60 }
+      },
+      {
+        "name": "BREACH_RATE_LIMITER",
+        "type": "ratelimit",
+        "namespace_id": "1003",
+        "simple": { "limit": 8, "period": 60 }
       }
     ]
   }

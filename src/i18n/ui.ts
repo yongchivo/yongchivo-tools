@@ -232,6 +232,30 @@ export const ui = {
     'sh.leak.xpb.name': 'X-Powered-By',
     'sh.leak.xpb.desc':
       'Discloses the backend technology. It serves no purpose for visitors — safe to remove.',
+    // Breach Checker
+    'bch.title': 'Breach Checker',
+    'bch.metaDescription':
+      'Check whether an email address appears in known data breaches, using the free XposedOrNot database. The lookup runs server-side — your email is never stored.',
+    'bch.heading': 'Breach Checker',
+    'bch.intro':
+      'Find out whether an email address has appeared in known data breaches. Enter it below and we check it against the XposedOrNot database.',
+    'bch.inputLabel': 'Email address',
+    'bch.placeholder': 'you@example.com',
+    'bch.check': 'Check',
+    'bch.checking': 'Checking…',
+    'bch.privacyNote':
+      '🔒 The email is sent once to XposedOrNot to run the lookup, then discarded. We never store or log it. This is the one tool here that queries an external service — everything else stays in your browser.',
+    'bch.foundTitle': 'Found in {n} known breach(es)',
+    'bch.foundIntro':
+      "This email appeared in the breaches below. It doesn't mean you'll be attacked — but change any reused passwords and turn on two-factor authentication where you can.",
+    'bch.exposedData': 'Exposed data',
+    'bch.records': '{n} accounts affected',
+    'bch.andMore': '+{n} more breaches not shown',
+    'bch.notFoundTitle': 'No known breaches found 🎉',
+    'bch.notFoundNote':
+      "Good news — this email wasn't found in XposedOrNot's database. That's not an absolute guarantee: it only reflects breaches they've indexed. Stay cautious and keep using strong, unique passwords.",
+    'bch.errInvalid': 'Enter a valid email address',
+    'bch.errGeneric': 'Something went wrong — please try again in a moment.',
     'footer.builtBy': 'Built by Yongchivo',
     'footer.privacy': 'Client-side tools run entirely in your browser — no data leaves your device.',
   },
@@ -462,6 +486,30 @@ export const ui = {
     'sh.leak.xpb.name': 'X-Powered-By',
     'sh.leak.xpb.desc':
       'Revela la tecnología del backend. No aporta nada a los visitantes — es seguro eliminarla.',
+    // Comprobador de filtraciones
+    'bch.title': 'Comprobador de filtraciones',
+    'bch.metaDescription':
+      'Comprueba si una dirección de correo aparece en filtraciones de datos conocidas, usando la base de datos gratuita XposedOrNot. La consulta se hace en el servidor — tu correo nunca se guarda.',
+    'bch.heading': 'Comprobador de filtraciones',
+    'bch.intro':
+      'Descubre si una dirección de correo ha aparecido en filtraciones de datos conocidas. Introdúcela abajo y la comprobamos con la base de datos de XposedOrNot.',
+    'bch.inputLabel': 'Correo electrónico',
+    'bch.placeholder': 'tu@ejemplo.com',
+    'bch.check': 'Comprobar',
+    'bch.checking': 'Comprobando…',
+    'bch.privacyNote':
+      '🔒 El correo se envía una vez a XposedOrNot para hacer la consulta y luego se descarta. Nunca lo guardamos ni lo registramos. Esta es la única herramienta del sitio que consulta un servicio externo — todo lo demás se queda en tu navegador.',
+    'bch.foundTitle': 'Encontrado en {n} filtración(es) conocida(s)',
+    'bch.foundIntro':
+      'Este correo apareció en las filtraciones de abajo. No significa que vayas a sufrir un ataque — pero cambia cualquier contraseña reutilizada y activa la verificación en dos pasos donde puedas.',
+    'bch.exposedData': 'Datos expuestos',
+    'bch.records': '{n} cuentas afectadas',
+    'bch.andMore': '+{n} filtraciones más no mostradas',
+    'bch.notFoundTitle': 'No se encontraron filtraciones conocidas 🎉',
+    'bch.notFoundNote':
+      'Buenas noticias — este correo no se encontró en la base de datos de XposedOrNot. No es una garantía absoluta: solo refleja las filtraciones que ellos han indexado. Mantén la cautela y sigue usando contraseñas fuertes y únicas.',
+    'bch.errInvalid': 'Introduce un correo electrónico válido',
+    'bch.errGeneric': 'Algo ha salido mal — inténtalo de nuevo en un momento.',
     'footer.builtBy': 'Creado por Yongchivo',
     'footer.privacy':
       'Las herramientas del lado del cliente funcionan íntegramente en tu navegador — ningún dato sale de tu dispositivo.',

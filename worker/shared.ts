@@ -8,6 +8,7 @@ export interface Env {
   ASSETS: { fetch(request: Request): Promise<Response> };
   RATE_LIMITER: RateLimiter;
   HEADERS_RATE_LIMITER: RateLimiter;
+  BREACH_RATE_LIMITER: RateLimiter;
   /** Set via `wrangler secret put BEEHIIV_API_KEY` — never in code. */
   BEEHIIV_API_KEY?: string;
   BEEHIIV_PUBLICATION_ID: string;
@@ -19,6 +20,8 @@ export const ALLOWED_ORIGINS = new Set([
 ]);
 
 export const VALID_LANGS = new Set(['en', 'es']);
+
+export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 export function json(status: number, body: unknown, origin: string | null): Response {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
