@@ -1,7 +1,7 @@
 ---
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import { useTranslations, type Lang } from '../i18n/ui';
+import { getLocalizedPath, useTranslations, type Lang } from '../i18n/ui';
 import '../styles/global.css';
 
 interface Props {
@@ -15,6 +15,10 @@ const t = useTranslations(lang);
 
 const pageTitle = title ? `${title} · ${t('site.title')}` : t('site.title');
 const pageDescription = description ?? t('site.description');
+
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const enUrl = new URL(getLocalizedPath(Astro.url.pathname, 'en'), Astro.site);
+const esUrl = new URL(getLocalizedPath(Astro.url.pathname, 'es'), Astro.site);
 ---
 
 <!doctype html>
@@ -25,7 +29,19 @@ const pageDescription = description ?? t('site.description');
     <title>{pageTitle}</title>
     <meta name="description" content={pageDescription} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
+    <link rel="canonical" href={canonical} />
+
+    <link rel="alternate" hreflang="en" href={enUrl} />
+    <link rel="alternate" hreflang="es" href={esUrl} />
+    <link rel="alternate" hreflang="x-default" href={enUrl} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={t('site.title')} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={pageDescription} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content={lang === 'es' ? 'es_ES' : 'en_GB'} />
+    <meta name="twitter:card" content="summary" />
   </head>
   <body class="flex min-h-screen flex-col bg-brand-bg font-sans text-brand-text antialiased">
     <Header lang={lang} />
