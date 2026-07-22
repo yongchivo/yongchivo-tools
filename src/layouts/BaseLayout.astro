@@ -42,6 +42,14 @@ const esUrl = new URL(getLocalizedPath(Astro.url.pathname, 'es'), Astro.site);
     <meta property="og:url" content={canonical} />
     <meta property="og:locale" content={lang === 'es' ? 'es_ES' : 'en_GB'} />
     <meta name="twitter:card" content="summary" />
+
+    {/* Cloudflare Web Analytics — cookieless; token is public by design. */}
+    <script
+      is:inline
+      type="module"
+      src="https://static.cloudflareinsights.com/beacon.min.js"
+      data-cf-beacon='{"token": "5e0840f29e7a4d51a5275dba11db0196"}'
+    ></script>
   </head>
   <body class="flex min-h-screen flex-col bg-brand-bg font-sans text-brand-text antialiased">
     <Header lang={lang} />
