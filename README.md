@@ -4,26 +4,33 @@
 
 ## Project status
 
-**In build — hub and first tool live** — _last updated 19 Jul 2026_
+**Live — all six tools shipped** — _last updated 23 Jul 2026_
 
 This project is built solo, end to end, using **Claude Code**, and tracked as a **Claude Project** for ongoing context.
 
 | Item | Status |
 |---|---|
 | Domain / subdomain | `tools.yongchivo.com` (Cloudflare-managed) — **live** |
-| Hosting | Cloudflare Workers static assets — **live**, git-connected auto-deploys from `main` |
-| Backend (for tools that need it) | Cloudflare Workers — to be set up |
-| Portfolio integration | Card to be added to `projects.astro` under **Cyber Security & Forensics** |
+| Hosting | Cloudflare **Workers static assets** (not classic Pages) — **live**, git-connected auto-deploys from `main` |
+| Backend (for tools that need it) | Cloudflare Workers — **live**, handling `/api/subscribe`, `/api/check-headers`, `/api/breach-check` |
+| Portfolio integration | **Done** — card added and updated in `projects.astro` under **Cyber Security & Forensics** |
 
 **Roadmap (by wave)**
 
-- [ ] **Wave 1 — quick start (client-only, high SEO):** Password Generator ✅ → Subnet Calculator → Password Strength Analyzer
-- [ ] **Wave 2 — viral hook:** "Which cyber role are you?" quiz (email capture + links into the serious tools)
-- [ ] **Wave 3 — Worker-backed (higher value, more effort):** Security Headers Checker → Breach Checker
+- [x] **Wave 1 — quick start (client-only, high SEO):** Password Generator → Subnet Calculator → Password Strength Analyzer
+- [x] **Wave 2 — viral hook:** "Which cyber role are you?" quiz (email capture + links into the serious tools)
+- [x] **Wave 3 — Worker-backed (higher value, more effort):** Security Headers Checker → Breach Checker
 - [x] Bilingual routing live (EN at root, ES under `/es/`)
 - [x] Shared header/footer with links back to yongchivo.com and PHV Prep UK
-- [ ] Newsletter capture wired to the quiz
-- [ ] Cloudflare Web Analytics enabled
+- [x] Newsletter capture wired to the quiz
+- [x] Cloudflare Web Analytics enabled
+
+### Shipped beyond the original checklist
+
+Two things landed during the build that weren't on the initial list:
+
+- **Bilingual SEO infrastructure** — auto-generated sitemap with `hreflang` alternates pairing every EN page with its `/es/` mirror, plus in-page `hreflang` and Open Graph / Twitter-card tags for social sharing.
+- **Site-wide security-headers hardening** — HSTS, Content-Security-Policy, X-Frame-Options, X-Content-Type-Options, Referrer-Policy and Permissions-Policy served on every response (via `public/_headers`). The site now grades **A** on its own Security Headers Checker — dogfooding the tool.
 
 ## Overview
 
