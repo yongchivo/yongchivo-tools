@@ -256,6 +256,33 @@ export const ui = {
       "Good news — this email wasn't found in XposedOrNot's database. That's not an absolute guarantee: it only reflects breaches they've indexed. Stay cautious and keep using strong, unique passwords.",
     'bch.errInvalid': 'Enter a valid email address',
     'bch.errGeneric': 'Something went wrong — please try again in a moment.',
+    // EXIF Viewer
+    'exif.title': 'EXIF Viewer — Check Photo Metadata',
+    'exif.metaDescription':
+      'Free EXIF viewer: see the hidden metadata in a photo — camera, settings, date and GPS location — and download a cleaned copy. 100% in your browser, nothing is uploaded.',
+    'exif.heading': 'EXIF Viewer',
+    'exif.intro':
+      'See the hidden metadata your photos carry — camera, capture settings, date, and sometimes your exact GPS location. Everything runs in your browser; the photo is never uploaded.',
+    'exif.drop': 'Drag a photo here, or click to choose',
+    'exif.formats': 'JPG, PNG, HEIC or TIFF',
+    'exif.privacyNote': '🔒 100% local — your photo is read in your browser and never leaves your device.',
+    'exif.reading': 'Reading…',
+    'exif.errRead': "Couldn't read that file. Try a different photo.",
+    'exif.gDevice': 'Camera / device',
+    'exif.gCapture': 'Capture settings',
+    'exif.gDatetime': 'Date & time',
+    'exif.gSoftware': 'Software',
+    'exif.gOther': 'Other metadata',
+    'exif.gpsTitle': '⚠ This photo reveals your location',
+    'exif.gpsBody':
+      'It contains GPS coordinates — the exact spot where it was taken. Most people never realize their photos carry this. Strip it before sharing publicly.',
+    'exif.viewOnMap': 'View on map ↗',
+    'exif.noExifTitle': 'No EXIF metadata found',
+    'exif.noExifBody':
+      "Good news for privacy — this image carries no readable EXIF data (it may have been stripped already, or the format doesn't store it).",
+    'exif.clean': 'Download cleaned image',
+    'exif.cleanUnavailable':
+      "Cleaned download isn't available for this format in-browser, but you can see everything it contains above.",
     'footer.builtBy': 'Built by Yongchivo',
     'footer.privacy': 'Client-side tools run entirely in your browser — no data leaves your device.',
   },
@@ -510,6 +537,34 @@ export const ui = {
       'Buenas noticias — este correo no se encontró en la base de datos de XposedOrNot. No es una garantía absoluta: solo refleja las filtraciones que ellos han indexado. Mantén la cautela y sigue usando contraseñas fuertes y únicas.',
     'bch.errInvalid': 'Introduce un correo electrónico válido',
     'bch.errGeneric': 'Algo ha salido mal — inténtalo de nuevo en un momento.',
+    // Visor EXIF
+    'exif.title': 'Visor EXIF — Ver los metadatos de una foto',
+    'exif.metaDescription':
+      'Visor EXIF gratuito: mira los metadatos ocultos de una foto — cámara, ajustes, fecha y ubicación GPS — y descarga una copia limpia. 100% en tu navegador, nada se sube.',
+    'exif.heading': 'Visor EXIF',
+    'exif.intro':
+      'Mira los metadatos ocultos que llevan tus fotos — cámara, ajustes de captura, fecha y, a veces, tu ubicación GPS exacta. Todo funciona en tu navegador; la foto nunca se sube.',
+    'exif.drop': 'Arrastra una foto aquí, o haz clic para elegir',
+    'exif.formats': 'JPG, PNG, HEIC o TIFF',
+    'exif.privacyNote':
+      '🔒 100% local — tu foto se lee en tu navegador y nunca sale de tu dispositivo.',
+    'exif.reading': 'Leyendo…',
+    'exif.errRead': 'No se pudo leer ese archivo. Prueba con otra foto.',
+    'exif.gDevice': 'Cámara / dispositivo',
+    'exif.gCapture': 'Ajustes de captura',
+    'exif.gDatetime': 'Fecha y hora',
+    'exif.gSoftware': 'Software',
+    'exif.gOther': 'Otros metadatos',
+    'exif.gpsTitle': '⚠ Esta foto revela tu ubicación',
+    'exif.gpsBody':
+      'Contiene coordenadas GPS — el lugar exacto donde se tomó. Casi nadie sabe que sus fotos llevan esto. Elimínalo antes de compartirla públicamente.',
+    'exif.viewOnMap': 'Ver en el mapa ↗',
+    'exif.noExifTitle': 'No se encontraron metadatos EXIF',
+    'exif.noExifBody':
+      'Buenas noticias para tu privacidad — esta imagen no tiene datos EXIF legibles (puede que ya se hayan eliminado, o el formato no los guarda).',
+    'exif.clean': 'Descargar imagen limpia',
+    'exif.cleanUnavailable':
+      'La descarga limpia no está disponible para este formato en el navegador, pero puedes ver arriba todo lo que contiene.',
     'footer.builtBy': 'Creado por Yongchivo',
     'footer.privacy':
       'Las herramientas del lado del cliente funcionan íntegramente en tu navegador — ningún dato sale de tu dispositivo.',

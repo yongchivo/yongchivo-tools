@@ -1,0 +1,304 @@
+---
+import { ui, useTranslations, type Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+// Group headings + UI copy are passed to the client script via a data attribute
+// (keeps CSP script-src free of inline JSON scripts). Individual EXIF field names
+// stay as their technical keys — they're universal and not translated.
+const strings = JSON.stringify(
+  Object.fromEntries(Object.entries(ui[lang]).filter(([key]) => key.startsWith('exif.')))
+);
+---
+
+<div id="exifviewer" class="max-w-2xl" data-strings={strings}>
+  <label
+    id="ev-drop"
+    for="ev-input"
+    class="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-brand-border bg-brand-surface px-6 py-12 text-center transition-colors hover:border-brand-purple/60"
+  >
+    <svg
+      class="h-8 w-8 text-brand-muted"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.5"
+      aria-hidden="true"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"
+      ></path>
+    </svg>
+    <span class="text-sm text-brand-text">{t('exif.drop')}</span>
+    <span class="text-xs text-brand-muted">{t('exif.formats')}</span>
+    <input id="ev-input" type="file" accept="image/jpeg,image/png,image/tiff,image/heic,.heic,.heif,.tif,.tiff" class="hidden" />
+  </label>
+
+  <p class="mt-3 text-xs text-brand-cyan">{t('exif.privacyNote')}</p>
+
+  <p id="ev-status" class="mt-4 hidden text-sm text-brand-muted" role="status"></p>
+  <p id="ev-error" class="mt-4 hidden text-sm text-red-400" role="alert"></p>
+
+  <div id="ev-results" class="mt-5 hidden">
+    <p id="ev-filename" class="mb-4 font-mono text-sm text-brand-muted"></p>
+
+    <!-- GPS privacy warning (prominent) -->
+    <div id="ev-gps" class="mb-4 hidden rounded-xl border border-red-400/40 bg-red-400/10 p-5">
+      <h2 id="ev-gps-title" class="font-semibold text-red-400"></h2>
+      <p id="ev-gps-body" class="mt-1.5 text-sm text-brand-muted"></p>
+      <p id="ev-gps-coords" class="mt-2 font-mono text-sm text-brand-text"></p>
+      <a
+        id="ev-gps-map"
+        href="#"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="mt-3 inline-block rounded-lg border border-brand-purple/40 bg-brand-purple/20 px-4 py-2 text-sm font-medium text-brand-purple transition-colors hover:bg-brand-purple/30"
+      ></a>
+    </div>
+
+    <!-- No-EXIF state -->
+    <div id="ev-noexif" class="mb-4 hidden rounded-xl border border-emerald-400/30 bg-emerald-400/5 p-5">
+      <h2 id="ev-noexif-title" class="font-semibold text-emerald-400"></h2>
+      <p id="ev-noexif-body" class="mt-1.5 text-sm text-brand-muted"></p>
+    </div>
+
+    <!-- Grouped metadata -->
+    <div id="ev-groups" class="space-y-4"></div>
+
+    <button
+      id="ev-clean"
+      type="button"
+      class="mt-4 hidden rounded-lg border border-brand-purple/40 bg-brand-purple/20 px-4 py-2.5 text-sm font-medium text-brand-purple transition-colors hover:bg-brand-purple/30"
+    ></button>
+    <p id="ev-clean-note" class="mt-3 hidden text-xs text-brand-muted"></p>
+  </div>
+</div>
+
+<script>
+  // exifr: actively maintained, browser-first EXIF/GPS parser with the widest
+  // format coverage (JPG/PNG/HEIC/TIFF) and reliable GPS decoding. Bundled into
+  // this page, so nothing loads from a third party and no photo is ever uploaded.
+  import exifr from 'exifr';
+
+  const root = document.getElementById('exifviewer');
+  if (root) {
+    const $ = (id: string) => document.getElementById(id)!;
+    const input = $('ev-input') as HTMLInputElement;
+    const drop = $('ev-drop');
+    const T = JSON.parse(root.dataset.strings!) as Record<string, string>;
+
+    // EXIF field name → display group. Anything unmatched falls into "Other".
+    const GROUPS: { id: string; keys: string[] }[] = [
+      { id: 'gDevice', keys: ['Make', 'Model', 'LensMake', 'LensModel', 'LensInfo', 'BodySerialNumber', 'HostComputer'] },
+      {
+        id: 'gCapture',
+        keys: ['FNumber', 'ExposureTime', 'ISO', 'ISOSpeedRatings', 'FocalLength', 'FocalLengthIn35mmFormat', 'ApertureValue', 'ShutterSpeedValue', 'Flash', 'WhiteBalance', 'ExposureProgram', 'ExposureMode', 'MeteringMode', 'ExposureCompensation', 'FocalPlaneXResolution', 'Orientation', 'ColorSpace', 'ImageWidth', 'ImageHeight', 'ExifImageWidth', 'ExifImageHeight'],
+      },
+      { id: 'gDatetime', keys: ['DateTimeOriginal', 'CreateDate', 'ModifyDate', 'OffsetTime', 'OffsetTimeOriginal', 'GPSDateStamp', 'GPSTimeStamp'] },
+      { id: 'gSoftware', keys: ['Software', 'ProcessingSoftware', 'Artist', 'Copyright'] },
+    ];
+    const GROUP_ORDER = ['gDevice', 'gCapture', 'gDatetime', 'gSoftware', 'gOther'];
+    // GPS fields are surfaced in the dedicated warning, not the generic groups.
+    const GPS_KEYS = new Set([
+      'latitude', 'longitude', 'GPSLatitude', 'GPSLongitude', 'GPSLatitudeRef', 'GPSLongitudeRef',
+      'GPSAltitude', 'GPSAltitudeRef', 'GPSDateStamp', 'GPSTimeStamp', 'GPSProcessingMethod', 'GPSVersionID', 'GPSHPositioningError', 'GPSSpeed', 'GPSImgDirection', 'GPSImgDirectionRef', 'GPSDestBearing', 'GPSDestBearingRef', 'GPSSpeedRef',
+    ]);
+
+    function formatValue(key: string, value: unknown): string {
+      if (value == null) return '';
+      if (value instanceof Date) return value.toLocaleString();
+      if (key === 'FNumber' || key === 'ApertureValue') return `f/${(+value).toFixed(1)}`;
+      if (key === 'FocalLength') return `${Math.round(+value)} mm`;
+      if (key === 'FocalLengthIn35mmFormat') return `${Math.round(+value)} mm (35mm eq.)`;
+      if (key === 'ExposureTime') {
+        const n = +value;
+        return n > 0 && n < 1 ? `1/${Math.round(1 / n)} s` : `${n} s`;
+      }
+      if (Array.isArray(value)) return value.join(', ');
+      if (typeof value === 'number') return Number.isInteger(value) ? String(value) : value.toFixed(2);
+      return String(value);
+    }
+
+    function row(key: string, value: unknown) {
+      const el = document.createElement('div');
+      el.className = 'flex justify-between gap-4 border-t border-brand-border py-1.5 text-sm first:border-t-0';
+      const k = document.createElement('span');
+      k.className = 'shrink-0 text-brand-muted';
+      k.textContent = key;
+      const v = document.createElement('span');
+      v.className = 'break-all text-right font-mono text-brand-text';
+      v.textContent = formatValue(key, value);
+      el.append(k, v);
+      return el;
+    }
+
+    function groupCard(title: string, entries: [string, unknown][]) {
+      const card = document.createElement('div');
+      card.className = 'rounded-xl border border-brand-border bg-brand-surface p-4 sm:p-5';
+      const h = document.createElement('h3');
+      h.className = 'mb-2 font-semibold text-brand-text';
+      h.textContent = title;
+      card.appendChild(h);
+      for (const [k, val] of entries) card.appendChild(row(k, val));
+      return card;
+    }
+
+    let cleanUrl: string | null = null;
+
+    async function prepareClean(file: File) {
+      const btn = $('ev-clean') as HTMLButtonElement;
+      const note = $('ev-clean-note');
+      btn.classList.add('hidden');
+      note.classList.add('hidden');
+      if (cleanUrl) {
+        URL.revokeObjectURL(cleanUrl);
+        cleanUrl = null;
+      }
+      let bitmap: ImageBitmap;
+      try {
+        // Re-encoding through a canvas drops ALL metadata; from-image applies
+        // EXIF orientation so the cleaned copy isn't rotated.
+        bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
+      } catch {
+        note.textContent = T['exif.cleanUnavailable'];
+        note.classList.remove('hidden');
+        return;
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = bitmap.width;
+      canvas.height = bitmap.height;
+      canvas.getContext('2d')!.drawImage(bitmap, 0, 0);
+      bitmap.close();
+      const isPng = file.type === 'image/png';
+      const type = isPng ? 'image/png' : 'image/jpeg';
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            note.textContent = T['exif.cleanUnavailable'];
+            note.classList.remove('hidden');
+            return;
+          }
+          cleanUrl = URL.createObjectURL(blob);
+          const base = file.name.replace(/\.[^.]+$/, '');
+          btn.textContent = T['exif.clean'];
+          btn.onclick = () => {
+            const a = document.createElement('a');
+            a.href = cleanUrl!;
+            a.download = `${base}-cleaned.${isPng ? 'png' : 'jpg'}`;
+            a.click();
+          };
+          btn.classList.remove('hidden');
+        },
+        type,
+        0.92
+      );
+    }
+
+    function render(tags: Record<string, unknown>, file: File) {
+      const results = $('ev-results');
+      const groupsEl = $('ev-groups');
+      const gpsEl = $('ev-gps');
+      const noexif = $('ev-noexif');
+      groupsEl.textContent = '';
+      gpsEl.classList.add('hidden');
+      noexif.classList.add('hidden');
+
+      $('ev-filename').textContent = `${file.name} · ${(file.size / 1024).toFixed(0)} KB`;
+
+      // GPS warning
+      const lat = tags.latitude as number | undefined;
+      const lon = tags.longitude as number | undefined;
+      if (typeof lat === 'number' && typeof lon === 'number') {
+        $('ev-gps-title').textContent = T['exif.gpsTitle'];
+        $('ev-gps-body').textContent = T['exif.gpsBody'];
+        $('ev-gps-coords').textContent = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+        const map = $('ev-gps-map') as HTMLAnchorElement;
+        map.href = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=15/${lat}/${lon}`;
+        map.textContent = T['exif.viewOnMap'];
+        gpsEl.classList.remove('hidden');
+      }
+
+      // Grouped non-GPS metadata (skip GPS keys, empties, and complex/binary
+      // values like thumbnails or maker notes; keep Dates).
+      const used = new Set<string>();
+      const nonGps = Object.entries(tags).filter(([k, v]) => {
+        if (GPS_KEYS.has(k) || v == null || v === '') return false;
+        if (v instanceof Date) return true;
+        return typeof v !== 'object';
+      });
+      const byGroup: Record<string, [string, unknown][]> = {};
+      for (const g of GROUPS) {
+        const entries = nonGps.filter(([k]) => g.keys.includes(k));
+        entries.forEach(([k]) => used.add(k));
+        if (entries.length) byGroup[g.id] = entries;
+      }
+      const other = nonGps.filter(([k]) => !used.has(k) && !GPS_KEYS.has(k));
+      if (other.length) byGroup.gOther = other;
+
+      let anyShown = false;
+      for (const id of GROUP_ORDER) {
+        if (byGroup[id]?.length) {
+          groupsEl.appendChild(groupCard(T[`exif.${id}`], byGroup[id]));
+          anyShown = true;
+        }
+      }
+
+      if (!anyShown && gpsEl.classList.contains('hidden')) {
+        $('ev-noexif-title').textContent = T['exif.noExifTitle'];
+        $('ev-noexif-body').textContent = T['exif.noExifBody'];
+        noexif.classList.remove('hidden');
+      }
+
+      results.classList.remove('hidden');
+      prepareClean(file);
+    }
+
+    async function handleFile(file: File) {
+      $('ev-error').classList.add('hidden');
+      $('ev-results').classList.add('hidden');
+      const status = $('ev-status');
+      status.textContent = T['exif.reading'];
+      status.classList.remove('hidden');
+      try {
+        // `true` = parse every segment/tag exifr can find; gps convenience
+        // props (latitude/longitude) are included when present.
+        const tags = (await exifr.parse(file, true)) || {};
+        status.classList.add('hidden');
+        render(tags as Record<string, unknown>, file);
+      } catch {
+        status.classList.add('hidden');
+        $('ev-error').textContent = T['exif.errRead'];
+        $('ev-error').classList.remove('hidden');
+      }
+    }
+
+    input.addEventListener('change', () => {
+      const file = input.files?.[0];
+      if (file) handleFile(file);
+    });
+
+    ['dragenter', 'dragover'].forEach((evt) =>
+      drop.addEventListener(evt, (e) => {
+        e.preventDefault();
+        drop.classList.add('border-brand-purple');
+      })
+    );
+    ['dragleave', 'drop'].forEach((evt) =>
+      drop.addEventListener(evt, (e) => {
+        e.preventDefault();
+        drop.classList.remove('border-brand-purple');
+      })
+    );
+    drop.addEventListener('drop', (e) => {
+      const file = (e as DragEvent).dataTransfer?.files?.[0];
+      if (file) handleFile(file);
+    });
+  }
+</script>

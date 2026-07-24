@@ -81,4 +81,27 @@ export const tools: Tool[] = [
       es: 'Descubre si una cuenta aparece en filtraciones de datos conocidas.',
     },
   },
+  {
+    slug: 'exif-viewer',
+    href: '/exif-viewer/',
+    name: {
+      en: 'EXIF Viewer',
+      es: 'Visor EXIF',
+    },
+    description: {
+      en: 'See the hidden metadata in a photo — camera, timestamp, even GPS location. 100% in your browser.',
+      es: 'Mira los metadatos ocultos de una foto — cámara, fecha y hasta la ubicación GPS. 100% en tu navegador.',
+    },
+  },
+  {
+    slug: 'pdf-metadata',
+    name: {
+      en: 'PDF Metadata Editor',
+      es: 'Editor de metadatos PDF',
+    },
+    description: {
+      en: 'Inspect and strip the hidden metadata in a PDF — author, software and timestamps.',
+      es: 'Inspecciona y elimina los metadatos ocultos de un PDF — autor, software y fechas.',
+    },
+  },
 ];
