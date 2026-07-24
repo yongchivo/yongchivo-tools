@@ -1,0 +1,271 @@
+---
+import { ui, useTranslations, type Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+// Client copy passed via a data attribute (keeps CSP script-src free of inline
+// JSON scripts, matching the other tools).
+const strings = JSON.stringify(
+  Object.fromEntries(Object.entries(ui[lang]).filter(([key]) => key.startsWith('pdf.')))
+);
+
+const textFields = [
+  { id: 'pm-title', label: t('pdf.fTitle') },
+  { id: 'pm-author', label: t('pdf.fAuthor') },
+  { id: 'pm-subject', label: t('pdf.fSubject') },
+  { id: 'pm-keywords', label: t('pdf.fKeywords') },
+  { id: 'pm-creator', label: t('pdf.fCreator') },
+  { id: 'pm-producer', label: t('pdf.fProducer') },
+];
+const dateFields = [
+  { id: 'pm-creationDate', label: t('pdf.fCreationDate') },
+  { id: 'pm-modificationDate', label: t('pdf.fModificationDate') },
+];
+---
+
+<div id="pdfeditor" class="max-w-2xl" data-strings={strings}>
+  <label
+    id="pm-drop"
+    for="pm-input"
+    class="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-brand-border bg-brand-surface px-6 py-12 text-center transition-colors hover:border-brand-purple/60"
+  >
+    <svg class="h-8 w-8 text-brand-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5"></path>
+    </svg>
+    <span class="text-sm text-brand-text">{t('pdf.drop')}</span>
+    <span class="text-xs text-brand-muted">{t('pdf.formats')}</span>
+    <input id="pm-input" type="file" accept="application/pdf,.pdf" class="hidden" />
+  </label>
+
+  <p class="mt-3 text-xs text-brand-cyan">{t('pdf.privacyNote')}</p>
+
+  <p id="pm-status" class="mt-4 hidden text-sm text-brand-muted" role="status"></p>
+  <p id="pm-error" class="mt-4 hidden text-sm text-red-400" role="alert"></p>
+
+  <div id="pm-results" class="mt-5 hidden">
+    <p id="pm-filename" class="mb-4 font-mono text-sm text-brand-muted"></p>
+
+    <div class="space-y-3 rounded-xl border border-brand-border bg-brand-surface p-4 sm:p-5">
+      {
+        textFields.map((f) => (
+          <div>
+            <label for={f.id} class="mb-1 block text-xs text-brand-muted">
+              {f.label}
+            </label>
+            <input
+              id={f.id}
+              type="text"
+              autocomplete="off"
+              class="w-full rounded-lg border border-brand-border bg-brand-bg px-3 py-2 text-sm text-brand-text focus:border-brand-purple focus:outline-none"
+            />
+          </div>
+        ))
+      }
+      {
+        dateFields.map((f) => (
+          <div>
+            <label for={f.id} class="mb-1 block text-xs text-brand-muted">
+              {f.label}
+            </label>
+            <input
+              id={f.id}
+              type="datetime-local"
+              class="w-full rounded-lg border border-brand-border bg-brand-bg px-3 py-2 text-sm text-brand-text focus:border-brand-purple focus:outline-none"
+            />
+          </div>
+        ))
+      }
+    </div>
+
+    <div class="mt-4 flex flex-col gap-2 sm:flex-row">
+      <button
+        id="pm-strip"
+        type="button"
+        class="rounded-lg border border-brand-border px-4 py-2.5 text-sm font-medium text-brand-muted transition-colors hover:border-red-400/60 hover:text-red-400"
+      >
+        {t('pdf.strip')}
+      </button>
+      <button
+        id="pm-download"
+        type="button"
+        class="rounded-lg border border-brand-purple/40 bg-brand-purple/20 px-4 py-2.5 text-sm font-medium text-brand-purple transition-colors hover:bg-brand-purple/30 disabled:opacity-60"
+      >
+        {t('pdf.download')}
+      </button>
+    </div>
+    <p id="pm-write-error" class="mt-2 hidden text-sm text-red-400" role="alert"></p>
+  </div>
+</div>
+
+<script>
+  // pdf-lib: reads and rewrites the PDF entirely in the browser. Bundled into
+  // the page, so nothing loads from a third party and no file is ever uploaded.
+  import { PDFDocument, PDFName } from 'pdf-lib';
+
+  const root = document.getElementById('pdfeditor');
+  if (root) {
+    const $ = (id: string) => document.getElementById(id)!;
+    const input = $('pm-input') as HTMLInputElement;
+    const drop = $('pm-drop');
+    const T = JSON.parse(root.dataset.strings!) as Record<string, string>;
+
+    const TEXT = [
+      { id: 'pm-title', get: 'getTitle', key: 'Title' },
+      { id: 'pm-author', get: 'getAuthor', key: 'Author' },
+      { id: 'pm-subject', get: 'getSubject', key: 'Subject' },
+      { id: 'pm-keywords', get: 'getKeywords', key: 'Keywords' },
+      { id: 'pm-creator', get: 'getCreator', key: 'Creator' },
+      { id: 'pm-producer', get: 'getProducer', key: 'Producer' },
+    ] as const;
+
+    // Kept so each download re-loads from the original bytes (no cumulative edits).
+    let currentBytes: ArrayBuffer | null = null;
+    let currentName = 'document.pdf';
+
+    function toInputValue(d: Date): string {
+      const p = (n: number) => String(n).padStart(2, '0');
+      return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+    }
+
+    async function loadAndShow(file: File) {
+      $('pm-error').classList.add('hidden');
+      $('pm-results').classList.add('hidden');
+      $('pm-write-error').classList.add('hidden');
+      const status = $('pm-status');
+      status.textContent = T['pdf.reading'];
+      status.classList.remove('hidden');
+      try {
+        const bytes = await file.arrayBuffer();
+        // updateMetadata:false so we read the file's REAL metadata — pdf-lib
+        // otherwise injects its own Producer/ModDate on load. (Default, without
+        // ignoreEncryption, still throws on encrypted PDFs → handled below.)
+        const doc = await PDFDocument.load(bytes, { updateMetadata: false });
+        currentBytes = bytes;
+        currentName = file.name;
+
+        ($('pm-title') as HTMLInputElement).value = doc.getTitle() ?? '';
+        ($('pm-author') as HTMLInputElement).value = doc.getAuthor() ?? '';
+        ($('pm-subject') as HTMLInputElement).value = doc.getSubject() ?? '';
+        ($('pm-keywords') as HTMLInputElement).value = doc.getKeywords() ?? '';
+        ($('pm-creator') as HTMLInputElement).value = doc.getCreator() ?? '';
+        ($('pm-producer') as HTMLInputElement).value = doc.getProducer() ?? '';
+        const cd = doc.getCreationDate();
+        const md = doc.getModificationDate();
+        ($('pm-creationDate') as HTMLInputElement).value = cd ? toInputValue(cd) : '';
+        ($('pm-modificationDate') as HTMLInputElement).value = md ? toInputValue(md) : '';
+
+        $('pm-filename').textContent = `${file.name} · ${(file.size / 1024).toFixed(0)} KB`;
+        status.classList.add('hidden');
+        $('pm-results').classList.remove('hidden');
+      } catch {
+        status.classList.add('hidden');
+        $('pm-error').textContent = T['pdf.errRead'];
+        $('pm-error').classList.remove('hidden');
+      }
+    }
+
+    function stripAll() {
+      for (const f of TEXT) ($(f.id) as HTMLInputElement).value = '';
+      ($('pm-creationDate') as HTMLInputElement).value = '';
+      ($('pm-modificationDate') as HTMLInputElement).value = '';
+    }
+
+    async function download() {
+      if (!currentBytes) return;
+      const btn = $('pm-download') as HTMLButtonElement;
+      const errEl = $('pm-write-error');
+      errEl.classList.add('hidden');
+      btn.disabled = true;
+      const label = btn.textContent;
+      btn.textContent = T['pdf.working'];
+      try {
+        // Re-load fresh so repeated downloads always start from the original.
+        // updateMetadata:false (a LOAD option) stops pdf-lib re-injecting its
+        // own Producer / ModDate on save.
+        const doc = await PDFDocument.load(currentBytes, { updateMetadata: false });
+        const info = doc.context.lookup(doc.context.trailerInfo.Info) as
+          | { delete(k: unknown): void }
+          | undefined;
+        const del = (key: string) => info?.delete(PDFName.of(key));
+
+        const setText: Record<string, (v: string) => void> = {
+          Title: (v) => doc.setTitle(v),
+          Author: (v) => doc.setAuthor(v),
+          Subject: (v) => doc.setSubject(v),
+          Creator: (v) => doc.setCreator(v),
+          Producer: (v) => doc.setProducer(v),
+        };
+        for (const f of TEXT) {
+          const value = ($(f.id) as HTMLInputElement).value.trim();
+          if (f.key === 'Keywords') {
+            if (value) doc.setKeywords(value.split(/[,\n]/).map((s) => s.trim()).filter(Boolean));
+            else del('Keywords');
+          } else if (value) {
+            setText[f.key]!(value);
+          } else {
+            del(f.key);
+          }
+        }
+
+        const cd = ($('pm-creationDate') as HTMLInputElement).value;
+        const md = ($('pm-modificationDate') as HTMLInputElement).value;
+        if (cd) doc.setCreationDate(new Date(cd));
+        else del('CreationDate');
+        if (md) doc.setModificationDate(new Date(md));
+        else del('ModDate');
+
+        // Drop any XMP metadata stream so it can't leak a stale copy.
+        try {
+          doc.catalog.delete(PDFName.of('Metadata'));
+        } catch {
+          /* no XMP stream present */
+        }
+
+        const out = await doc.save();
+        const blob = new Blob([out], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+        const anyLeft = TEXT.some((f) => ($(f.id) as HTMLInputElement).value.trim()) || cd || md;
+        const base = currentName.replace(/\.pdf$/i, '');
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${base}-${anyLeft ? 'updated' : 'cleaned'}.pdf`;
+        a.click();
+        URL.revokeObjectURL(url);
+      } catch {
+        errEl.textContent = T['pdf.errWrite'];
+        errEl.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = label;
+      }
+    }
+
+    input.addEventListener('change', () => {
+      const file = input.files?.[0];
+      if (file) loadAndShow(file);
+    });
+    ['dragenter', 'dragover'].forEach((evt) =>
+      drop.addEventListener(evt, (e) => {
+        e.preventDefault();
+        drop.classList.add('border-brand-purple');
+      })
+    );
+    ['dragleave', 'drop'].forEach((evt) =>
+      drop.addEventListener(evt, (e) => {
+        e.preventDefault();
+        drop.classList.remove('border-brand-purple');
+      })
+    );
+    drop.addEventListener('drop', (e) => {
+      const file = (e as DragEvent).dataTransfer?.files?.[0];
+      if (file) loadAndShow(file);
+    });
+    $('pm-strip').addEventListener('click', stripAll);
+    $('pm-download').addEventListener('click', download);
+  }
+</script>

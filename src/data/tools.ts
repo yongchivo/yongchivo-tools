@@ -95,6 +95,7 @@ export const tools: Tool[] = [
   },
   {
     slug: 'pdf-metadata',
+    href: '/pdf-metadata/',
     name: {
       en: 'PDF Metadata Editor',
       es: 'Editor de metadatos PDF',

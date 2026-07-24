@@ -283,6 +283,32 @@ export const ui = {
     'exif.clean': 'Download cleaned image',
     'exif.cleanUnavailable':
       "Cleaned download isn't available for this format in-browser, but you can see everything it contains above.",
+    // PDF Metadata Editor
+    'pdf.title': 'PDF Metadata Editor — Remove PDF Metadata',
+    'pdf.metaDescription':
+      'Free PDF metadata editor: view, edit or strip the hidden author, software and date fields in a PDF, then download the cleaned file. 100% in your browser, nothing is uploaded.',
+    'pdf.heading': 'PDF Metadata Editor',
+    'pdf.intro':
+      "Sending a CV or a document? It may quietly carry your name, the software you used, and its edit history. View, edit or wipe that metadata here, then download the cleaned PDF — the page content is left untouched. Everything runs in your browser; the file is never uploaded.",
+    'pdf.drop': 'Drag a PDF here, or click to choose',
+    'pdf.formats': 'PDF files only',
+    'pdf.privacyNote': '🔒 100% local — your PDF is read in your browser and never leaves your device.',
+    'pdf.reading': 'Reading…',
+    'pdf.errRead': "Couldn't read that PDF — it may be encrypted, password-protected or malformed.",
+    'pdf.fTitle': 'Title',
+    'pdf.fAuthor': 'Author',
+    'pdf.fSubject': 'Subject',
+    'pdf.fKeywords': 'Keywords',
+    'pdf.fCreator': 'Creator',
+    'pdf.fProducer': 'Producer',
+    'pdf.fCreationDate': 'Creation date',
+    'pdf.fModificationDate': 'Modification date',
+    'pdf.empty': '(empty)',
+    'pdf.strip': 'Strip all metadata',
+    'pdf.download': 'Download updated PDF',
+    'pdf.downloadStripped': 'Download stripped PDF',
+    'pdf.working': 'Preparing…',
+    'pdf.errWrite': 'Something went wrong while writing the PDF. Please try again.',
     'footer.builtBy': 'Built by Yongchivo',
     'footer.privacy': 'Client-side tools run entirely in your browser — no data leaves your device.',
   },
@@ -565,6 +591,34 @@ export const ui = {
     'exif.clean': 'Descargar imagen limpia',
     'exif.cleanUnavailable':
       'La descarga limpia no está disponible para este formato en el navegador, pero puedes ver arriba todo lo que contiene.',
+    // Editor de metadatos PDF
+    'pdf.title': 'Editor de metadatos PDF — Quitar metadatos de un PDF',
+    'pdf.metaDescription':
+      'Editor de metadatos PDF gratuito: mira, edita o elimina los campos ocultos de autor, software y fechas de un PDF, y descarga el archivo limpio. 100% en tu navegador, nada se sube.',
+    'pdf.heading': 'Editor de metadatos PDF',
+    'pdf.intro':
+      '¿Vas a enviar un CV o un documento? Puede llevar en silencio tu nombre, el software que usaste y su historial de ediciones. Mira, edita o borra esos metadatos aquí y descarga el PDF limpio — el contenido de las páginas no se toca. Todo funciona en tu navegador; el archivo nunca se sube.',
+    'pdf.drop': 'Arrastra un PDF aquí, o haz clic para elegir',
+    'pdf.formats': 'Solo archivos PDF',
+    'pdf.privacyNote':
+      '🔒 100% local — tu PDF se lee en tu navegador y nunca sale de tu dispositivo.',
+    'pdf.reading': 'Leyendo…',
+    'pdf.errRead':
+      'No se pudo leer ese PDF — puede estar cifrado, protegido con contraseña o dañado.',
+    'pdf.fTitle': 'Título',
+    'pdf.fAuthor': 'Autor',
+    'pdf.fSubject': 'Asunto',
+    'pdf.fKeywords': 'Palabras clave',
+    'pdf.fCreator': 'Creador',
+    'pdf.fProducer': 'Productor',
+    'pdf.fCreationDate': 'Fecha de creación',
+    'pdf.fModificationDate': 'Fecha de modificación',
+    'pdf.empty': '(vacío)',
+    'pdf.strip': 'Eliminar todos los metadatos',
+    'pdf.download': 'Descargar PDF actualizado',
+    'pdf.downloadStripped': 'Descargar PDF limpio',
+    'pdf.working': 'Preparando…',
+    'pdf.errWrite': 'Algo salió mal al escribir el PDF. Inténtalo de nuevo.',
     'footer.builtBy': 'Creado por Yongchivo',
     'footer.privacy':
       'Las herramientas del lado del cliente funcionan íntegramente en tu navegador — ningún dato sale de tu dispositivo.',
