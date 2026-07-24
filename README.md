@@ -4,7 +4,7 @@
 
 ## Project status
 
-**Live — all six tools shipped** — _last updated 23 Jul 2026_
+**Live — eight tools shipped (Waves 1–3 + metadata cluster)** — _last updated 24 Jul 2026_
 
 This project is built solo, end to end, using **Claude Code**, and tracked as a **Claude Project** for ongoing context.
 
@@ -31,6 +31,7 @@ Two things landed during the build that weren't on the initial list:
 
 - **Bilingual SEO infrastructure** — auto-generated sitemap with `hreflang` alternates pairing every EN page with its `/es/` mirror, plus in-page `hreflang` and Open Graph / Twitter-card tags for social sharing.
 - **Site-wide security-headers hardening** — HSTS, Content-Security-Policy, X-Frame-Options, X-Content-Type-Options, Referrer-Policy and Permissions-Policy served on every response (via `public/_headers`). The site now grades **A** on its own Security Headers Checker — dogfooding the tool.
+- **A second "metadata & privacy" cluster** — two extra client-only tools beyond Waves 1–3: an **EXIF Viewer** (reveals a photo's hidden metadata, incl. GPS location, and strips it) and a **PDF Metadata Editor** (view / edit / strip a PDF's author, software and dates before sharing). They cross-link to each other and into the security tools, extending the internal-link graph.
 
 ## Overview
 
@@ -54,6 +55,8 @@ Fastest to ship, most private (nothing leaves the device).
 - **Password Strength Analyzer** — complements the generator; they cross-link and reinforce the "passwords" topic cluster.
 - **Subnet Calculator** — loyal niche (networking students), low-quality competition, reuses exercise logic.
 - **"Which cyber role are you?" quiz** — viral personality test (pentester / SOC analyst / forensics…); primary email-capture point.
+- **EXIF Viewer** — reveals a photo's hidden metadata, prominently flagging GPS location, and offers a stripped copy; anchors a second "metadata & privacy" cluster. Uses `exifr`.
+- **PDF Metadata Editor** — view, edit or strip a PDF's author, software and dates before sharing a CV or document; cross-links with the EXIF Viewer. Uses `pdf-lib`.
 - **Password Game (cyber edition)** — optional later viral piece.
 
 ### Worker-backed (Cloudflare Worker as lightweight backend / proxy)
@@ -72,6 +75,8 @@ tools.yongchivo.com/
 ├── /security-headers/         → Worker
 ├── /breach-check/             → Worker
 ├── /which-cyber-role/         → client-only (viral quiz)
+├── /exif-viewer/              → client-only (photo metadata + GPS, exifr)
+├── /pdf-metadata/             → client-only (PDF metadata editor, pdf-lib)
 └── /es/...                    → each page mirrored in Spanish
 ```
 
